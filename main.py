@@ -47,7 +47,6 @@ async def install():
 
 @app.get("/oauth/callback", response_class=HTMLResponse)
 async def oauth_callback(request: Request):
-
     code = request.query_params.get("code")
 
     if not code:
@@ -66,7 +65,6 @@ async def oauth_callback(request: Request):
 
 @app.post("/webhooks/tiendanube")
 async def webhook(request: Request):
-
     body = await request.body()
 
     return {
@@ -77,7 +75,6 @@ async def webhook(request: Request):
 
 @app.get("/privacy", response_class=HTMLResponse)
 async def privacy():
-
     return HTMLResponse(
         "<h2>Privacidad - CUBIKA TRAFFIC BOT</h2>"
         "<p>La aplicación utiliza únicamente los datos necesarios "
@@ -87,8 +84,8 @@ async def privacy():
 
 @app.get("/terms", response_class=HTMLResponse)
 async def terms():
-
     return HTMLResponse(
         "<h2>Términos - CUBIKA TRAFFIC BOT</h2>"
         "<p>La aplicación se utiliza para integrar y medir "
         "actividades de marketing autorizadas.</p>"
+    )
