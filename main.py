@@ -1,5 +1,6 @@
 import os
 import json
+import html
 from urllib.parse import urlencode
 from urllib.request import Request as URLRequest, urlopen
 
@@ -36,51 +37,84 @@ def get_products():
     return json.loads(products_data)
 
 
+def get_translation(value, default=""):
+    if isinstance(value, str):
+        return value
+
+    if isinstance(value, dict):
+        return (
+            value.get("es")
+            or value.get("pt")
+            or value.get("en")
+            or default
+        )
+
+    return default
+
+
+def build_tracking_url(product_url, source):
+    params = {
+        "utm_source": source,
+        "utm_medium": "social",
+        "utm_campaign": "cubika_traffic_bot",
+    }
+
+    separator = "&" if "?" in product_url else "?"
+    return product_url + separator + urlencode(params)
+
+
 @app.get("/")
 async def home():
     return {
         "status": "ok",
         "app": "CUBIKA TRAFFIC BOT",
         "message": "Backend funcionando correctamente.",
-        "dashboard": "/dashboard"
+        "dashboard": "/dashboard",
     }
 
 
 @app.get("/dashboard", response_class=HTMLResponse)
 async def dashboard():
-    connected = bool(TIENDANUBE_ACCESS_TOKEN and TIENDANUBE_STORE_ID)
+    connected = bool(
+        TIENDANUBE_ACCESS_TOKEN and TIENDANUBE_STORE_ID
+    )
+
+    api_ok = False
 
     try:
         products = get_products() if connected else []
+        api_ok = connected
     except Exception:
         products = []
+        api_ok = False
 
     product_cards = ""
 
     for product in products[:30]:
-        name_data = product.get("name", {})
-        name = (
-            name_data.get("es")
-            or name_data.get("pt")
-            or name_data.get("en")
-            or "Producto sin nombre"
+        name = get_translation(
+            product.get("name"),
+            "Producto sin nombre"
         )
 
-        handle_data = product.get("handle", {})
-        handle = (
-            handle_data.get("es")
-            or handle_data.get("pt")
-            or handle_data.get("en")
-            or ""
+        handle = get_translation(
+            product.get("handle"),
+            ""
         )
 
         canonical_url = product.get("canonical_url", "")
+
+        if not canonical_url and handle:
+            canonical_url = (
+                "https://cubikacajas.mitiendanube.com/"
+                f"productos/{handle}"
+            )
 
         variants = product.get("variants", [])
         price = "Sin precio"
 
         if variants:
             price_value = variants[0].get("price")
+
             if price_value:
                 price = f"$ {price_value}"
 
@@ -90,56 +124,142 @@ async def dashboard():
         if images:
             image_url = images[0].get("src", "")
 
-        if not canonical_url and handle:
-            canonical_url = (
-                f"https://cubikacajas.mitiendanube.com/productos/{handle}"
-            )
-
-        image_html = ""
+        safe_name = html.escape(str(name))
+        safe_price = html.escape(str(price))
+        safe_image = html.escape(str(image_url))
+        safe_url = html.escape(str(canonical_url))
 
         if image_url:
             image_html = (
-                f'<img src="{image_url}" '
-                f'alt="{name}" class="product-image">'
+                f'<img src="{safe_image}" '
+                f'alt="{safe_name}" class="product-image">'
             )
         else:
             image_html = (
                 '<div class="no-image">Sin imagen</div>'
             )
 
-        button_html = ""
+        marketing_html = ""
 
         if canonical_url:
-            button_html = (
-                f'<a href="{canonical_url}" '
-                f'target="_blank" class="product-button">'
-                f'Ver producto</a>'
+            instagram_url = build_tracking_url(
+                canonical_url,
+                "instagram"
             )
+
+            facebook_url = build_tracking_url(
+                canonical_url,
+                "facebook"
+            )
+
+            whatsapp_url = build_tracking_url(
+                canonical_url,
+                "whatsapp"
+            )
+
+            instagram_url_safe = html.escape(
+                instagram_url,
+                quote=True
+            )
+
+            facebook_url_safe = html.escape(
+                facebook_url,
+                quote=True
+            )
+
+            whatsapp_url_safe = html.escape(
+                whatsapp_url,
+                quote=True
+            )
+
+            marketing_html = f"""
+            <div class="marketing-links">
+
+                <div class="marketing-title">
+                    Enlaces de campaña
+                </div>
+
+                <button
+                    class="channel-button"
+                    onclick="copyLink('{instagram_url_safe}', this)"
+                >
+                    Copiar Instagram
+                </button>
+
+                <button
+                    class="channel-button"
+                    onclick="copyLink('{facebook_url_safe}', this)"
+                >
+                    Copiar Facebook
+                </button>
+
+                <button
+                    class="channel-button"
+                    onclick="copyLink('{whatsapp_url_safe}', this)"
+                >
+                    Copiar WhatsApp
+                </button>
+
+            </div>
+            """
 
         product_cards += f"""
         <div class="product-card">
+
             {image_html}
+
             <div class="product-info">
-                <h3>{name}</h3>
-                <div class="price">{price}</div>
-                {button_html}
+
+                <h3>{safe_name}</h3>
+
+                <div class="price">
+                    {safe_price}
+                </div>
+
+                {
+                    f'<a href="{safe_url}" '
+                    f'target="_blank" '
+                    f'class="product-button">'
+                    f'Ver producto</a>'
+                    if canonical_url
+                    else ""
+                }
+
+                {marketing_html}
+
             </div>
+
         </div>
         """
 
     status_text = "Conectado" if connected else "Desconectado"
-    status_class = "connected" if connected else "disconnected"
 
-    html = f"""
+    status_class = (
+        "connected"
+        if connected
+        else "disconnected"
+    )
+
+    api_text = "OK" if api_ok else "ERROR"
+
+    html_page = f"""
     <!DOCTYPE html>
+
     <html lang="es">
+
     <head>
+
         <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0"
+        >
 
         <title>CUBIKA TRAFFIC BOT</title>
 
         <style>
+
             * {{
                 box-sizing: border-box;
             }}
@@ -168,7 +288,7 @@ async def dashboard():
             }}
 
             .container {{
-                max-width: 1200px;
+                max-width: 1250px;
                 margin: 0 auto;
                 padding: 30px 20px;
             }}
@@ -207,7 +327,8 @@ async def dashboard():
 
             .stats {{
                 display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+                grid-template-columns:
+                    repeat(auto-fit, minmax(180px, 1fr));
                 gap: 15px;
                 margin-top: 20px;
             }}
@@ -224,13 +345,28 @@ async def dashboard():
                 margin-top: 5px;
             }}
 
-            h2 {{
-                margin-top: 35px;
+            .marketing-intro {{
+                background: white;
+                padding: 20px;
+                border-radius: 14px;
+                margin: 25px 0;
+                box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+            }}
+
+            .marketing-intro h2 {{
+                margin-top: 0;
+            }}
+
+            .marketing-intro p {{
+                margin-bottom: 0;
+                line-height: 1.5;
+                color: #4b5563;
             }}
 
             .products-grid {{
                 display: grid;
-                grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+                grid-template-columns:
+                    repeat(auto-fill, minmax(240px, 1fr));
                 gap: 20px;
             }}
 
@@ -245,13 +381,13 @@ async def dashboard():
 
             .product-image {{
                 width: 100%;
-                height: 210px;
+                height: 220px;
                 object-fit: cover;
                 background: #eee;
             }}
 
             .no-image {{
-                height: 210px;
+                height: 220px;
                 display: flex;
                 align-items: center;
                 justify-content: center;
@@ -273,24 +409,48 @@ async def dashboard():
             }}
 
             .price {{
-                font-size: 18px;
+                font-size: 19px;
                 font-weight: bold;
-                margin-bottom: 16px;
+                margin-bottom: 14px;
             }}
 
             .product-button {{
-                margin-top: auto;
-                display: inline-block;
+                display: block;
                 background: #111827;
                 color: white;
                 text-decoration: none;
                 padding: 10px 14px;
                 border-radius: 8px;
                 text-align: center;
+                margin-bottom: 14px;
             }}
 
-            .product-button:hover {{
-                background: #374151;
+            .marketing-links {{
+                border-top: 1px solid #e5e7eb;
+                padding-top: 14px;
+                margin-top: auto;
+            }}
+
+            .marketing-title {{
+                font-size: 13px;
+                font-weight: bold;
+                margin-bottom: 9px;
+                color: #374151;
+            }}
+
+            .channel-button {{
+                width: 100%;
+                border: 1px solid #d1d5db;
+                background: white;
+                padding: 9px;
+                margin-bottom: 7px;
+                border-radius: 7px;
+                cursor: pointer;
+                font-weight: 600;
+            }}
+
+            .channel-button:hover {{
+                background: #f3f4f6;
             }}
 
             .empty {{
@@ -305,14 +465,21 @@ async def dashboard():
                 color: #6b7280;
                 font-size: 14px;
             }}
+
         </style>
+
     </head>
 
     <body>
 
         <header>
+
             <h1>CUBIKA TRAFFIC BOT</h1>
-            <p>Panel de control de CUBIKACAJAS</p>
+
+            <p>
+                Marketing y tráfico para CUBIKACAJAS
+            </p>
+
         </header>
 
         <div class="container">
@@ -320,17 +487,28 @@ async def dashboard():
             <div class="status-card">
 
                 <div class="status-row">
+
                     <div>
-                        <h2 style="margin:0;">Estado de conexión</h2>
-                        <p>Tienda ID: {TIENDANUBE_STORE_ID or "No configurada"}</p>
+
+                        <h2 style="margin:0;">
+                            Estado de conexión
+                        </h2>
+
+                        <p>
+                            Tienda ID:
+                            {html.escape(TIENDANUBE_STORE_ID or "No configurada")}
+                        </p>
+
                     </div>
 
                     <span class="status-badge {status_class}">
                         {status_text}
                     </span>
+
                 </div>
 
                 <div class="stats">
+
                     <div class="stat">
                         Productos cargados
                         <strong>{len(products)}</strong>
@@ -338,23 +516,46 @@ async def dashboard():
 
                     <div class="stat">
                         Estado API
-                        <strong>{"OK" if connected else "ERROR"}</strong>
+                        <strong>{api_text}</strong>
                     </div>
 
                     <div class="stat">
                         Permiso
                         <strong>Solo lectura</strong>
                     </div>
+
                 </div>
 
             </div>
 
-            <h2>Productos de CUBIKACAJAS</h2>
+            <div class="marketing-intro">
+
+                <h2>
+                    Marketing y Tráfico
+                </h2>
+
+                <p>
+                    Cada botón genera un enlace especial para
+                    Instagram, Facebook o WhatsApp.
+                    Las visitas que lleguen mediante esos enlaces
+                    podrán diferenciarse por canal mediante UTM.
+                </p>
+
+            </div>
+
+            <h2>
+                Productos de CUBIKACAJAS
+            </h2>
 
             {
-                f'<div class="products-grid">{product_cards}</div>'
+                f'<div class="products-grid">'
+                f'{product_cards}'
+                f'</div>'
                 if product_cards
-                else '<div class="empty">No se encontraron productos.</div>'
+                else
+                '<div class="empty">'
+                'No se encontraron productos.'
+                '</div>'
             }
 
         </div>
@@ -363,15 +564,46 @@ async def dashboard():
             CUBIKA TRAFFIC BOT
         </footer>
 
+        <script>
+
+            async function copyLink(url, button) {{
+
+                const originalText = button.innerText;
+
+                try {{
+
+                    await navigator.clipboard.writeText(url);
+
+                    button.innerText = "Copiado ✓";
+
+                    setTimeout(function() {{
+                        button.innerText = originalText;
+                    }}, 1500);
+
+                }} catch (error) {{
+
+                    window.prompt(
+                        "Copiá este enlace:",
+                        url
+                    );
+
+                }}
+
+            }}
+
+        </script>
+
     </body>
+
     </html>
     """
 
-    return HTMLResponse(html)
+    return HTMLResponse(html_page)
 
 
 @app.get("/install")
 async def install():
+
     if not TIENDANUBE_CLIENT_ID or not TIENDANUBE_REDIRECT_URI:
         return JSONResponse(
             {"error": "Faltan variables de Tiendanube"},
@@ -396,6 +628,7 @@ async def install():
 
 @app.get("/oauth/callback", response_class=HTMLResponse)
 async def oauth_callback(request: Request):
+
     code = request.query_params.get("code")
 
     if not code:
@@ -413,6 +646,7 @@ async def oauth_callback(request: Request):
         )
 
     try:
+
         data = urlencode({
             "client_id": TIENDANUBE_CLIENT_ID,
             "client_secret": TIENDANUBE_CLIENT_SECRET,
@@ -424,23 +658,31 @@ async def oauth_callback(request: Request):
             "https://www.tiendanube.com/apps/authorize/token",
             data=data,
             headers={
-                "Content-Type": "application/x-www-form-urlencoded"
+                "Content-Type":
+                    "application/x-www-form-urlencoded"
             },
             method="POST",
         )
 
         with urlopen(token_request, timeout=20) as response:
-            token_response = response.read().decode("utf-8")
+            token_response = (
+                response.read().decode("utf-8")
+            )
 
         token_data = json.loads(token_response)
 
         access_token = token_data.get("access_token")
-        store_id = token_data.get("user_id") or token_data.get("store_id")
+
+        store_id = (
+            token_data.get("user_id")
+            or token_data.get("store_id")
+        )
 
         if not access_token or not store_id:
             return HTMLResponse(
                 "<h2>CUBIKA TRAFFIC BOT</h2>"
-                "<p>Tiendanube respondió, pero faltan datos de autorización.</p>",
+                "<p>Tiendanube respondió, "
+                "pero faltan datos de autorización.</p>",
                 status_code=500
             )
 
@@ -448,45 +690,65 @@ async def oauth_callback(request: Request):
             "<h2>CUBIKA TRAFFIC BOT</h2>"
             "<p>Autorización recibida correctamente.</p>"
             "<p>La conexión con Tiendanube está funcionando.</p>"
-            "<p>Las credenciales persistentes ya están configuradas en Render.</p>"
-            '<p><a href="/dashboard">Abrir panel</a></p>'
+            '<p><a href="/dashboard">'
+            "Abrir panel"
+            "</a></p>"
         )
 
     except Exception as error:
         return HTMLResponse(
             "<h2>CUBIKA TRAFFIC BOT</h2>"
-            "<p>Se recibió el código, pero hubo un error al solicitar el token.</p>"
-            f"<p>Error: {str(error)}</p>",
+            "<p>Se recibió el código, pero hubo "
+            "un error al solicitar el token.</p>"
+            f"<p>Error: {html.escape(str(error))}</p>",
             status_code=500
         )
 
 
 @app.get("/connection-status")
 async def connection_status():
+
     return {
         "connected": bool(
-            TIENDANUBE_ACCESS_TOKEN and TIENDANUBE_STORE_ID
+            TIENDANUBE_ACCESS_TOKEN
+            and TIENDANUBE_STORE_ID
         ),
-        "store_id": TIENDANUBE_STORE_ID if TIENDANUBE_STORE_ID else None
+        "store_id": (
+            TIENDANUBE_STORE_ID
+            if TIENDANUBE_STORE_ID
+            else None
+        ),
     }
 
 
 @app.get("/products")
 async def products():
+
     if not TIENDANUBE_ACCESS_TOKEN or not TIENDANUBE_STORE_ID:
+
         return JSONResponse(
-            {"error": "La conexión con Tiendanube no está configurada."},
+            {
+                "error":
+                    "La conexión con Tiendanube "
+                    "no está configurada."
+            },
             status_code=500
         )
 
     try:
+
         products_data = get_products()
-        return JSONResponse(content=products_data)
+
+        return JSONResponse(
+            content=products_data
+        )
 
     except Exception as error:
+
         return JSONResponse(
             {
-                "error": "No se pudieron consultar los productos.",
+                "error":
+                    "No se pudieron consultar los productos.",
                 "detail": str(error),
             },
             status_code=500
@@ -495,6 +757,7 @@ async def products():
 
 @app.post("/webhooks/tiendanube")
 async def webhook(request: Request):
+
     body = await request.body()
 
     return {
@@ -505,33 +768,41 @@ async def webhook(request: Request):
 
 @app.post("/webhooks/store-redact")
 async def store_redact(request: Request):
+
     await request.json()
+
     return {"received": True}
 
 
 @app.post("/webhooks/customers-redact")
 async def customers_redact(request: Request):
+
     await request.json()
+
     return {"received": True}
 
 
 @app.post("/webhooks/customers-data-request")
 async def customers_data_request(request: Request):
+
     await request.json()
+
     return {"received": True}
 
 
 @app.get("/privacy", response_class=HTMLResponse)
 async def privacy():
+
     return HTMLResponse(
         "<h2>Privacidad - CUBIKA TRAFFIC BOT</h2>"
-        "<p>La aplicación utiliza únicamente los datos necesarios "
-        "para operar la integración autorizada.</p>"
+        "<p>La aplicación utiliza únicamente los datos "
+        "necesarios para operar la integración autorizada.</p>"
     )
 
 
 @app.get("/terms", response_class=HTMLResponse)
 async def terms():
+
     return HTMLResponse(
         "<h2>Términos - CUBIKA TRAFFIC BOT</h2>"
         "<p>La aplicación se utiliza para integrar y medir "
