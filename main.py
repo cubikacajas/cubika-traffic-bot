@@ -1,7 +1,7 @@
 import os
+import json
 from urllib.parse import urlencode
 from urllib.request import Request as URLRequest, urlopen
-from urllib.parse import parse_qs
 
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse, JSONResponse
@@ -12,6 +12,11 @@ app = FastAPI(title="CUBIKA TRAFFIC BOT")
 TIENDANUBE_CLIENT_ID = os.getenv("TIENDANUBE_CLIENT_ID", "")
 TIENDANUBE_CLIENT_SECRET = os.getenv("TIENDANUBE_CLIENT_SECRET", "")
 TIENDANUBE_REDIRECT_URI = os.getenv("TIENDANUBE_REDIRECT_URI", "")
+
+# Almacenamiento temporal en memoria.
+# Más adelante lo pasaremos a almacenamiento persistente.
+TIENDANUBE_ACCESS_TOKEN = ""
+TIENDANUBE_STORE_ID = ""
 
 
 @app.get("/")
@@ -49,6 +54,9 @@ async def install():
 
 @app.get("/oauth/callback", response_class=HTMLResponse)
 async def oauth_callback(request: Request):
+    global TIENDANUBE_ACCESS_TOKEN
+    global TIENDANUBE_STORE_ID
+
     code = request.query_params.get("code")
 
     if not code:
@@ -83,13 +91,29 @@ async def oauth_callback(request: Request):
         )
 
         with urlopen(token_request, timeout=20) as response:
-            token_data = response.read().decode("utf-8")
+            token_response = response.read().decode("utf-8")
+
+        token_data = json.loads(token_response)
+
+        access_token = token_data.get("access_token")
+        store_id = token_data.get("user_id") or token_data.get("store_id")
+
+        if not access_token or not store_id:
+            return HTMLResponse(
+                "<h2>CUBIKA TRAFFIC BOT</h2>"
+                "<p>Tiendanube respondió, pero faltan datos de autorización.</p>",
+                status_code=500
+            )
+
+        TIENDANUBE_ACCESS_TOKEN = access_token
+        TIENDANUBE_STORE_ID = str(store_id)
 
         return HTMLResponse(
             "<h2>CUBIKA TRAFFIC BOT</h2>"
             "<p>Autorización recibida correctamente.</p>"
             "<p>La conexión con Tiendanube está funcionando.</p>"
-            "<p>Token recibido correctamente.</p>"
+            "<p>Token guardado temporalmente de forma segura.</p>"
+            f"<p>ID de tienda: {TIENDANUBE_STORE_ID}</p>"
         )
 
     except Exception as error:
@@ -99,6 +123,16 @@ async def oauth_callback(request: Request):
             f"<p>Error: {str(error)}</p>",
             status_code=500
         )
+
+
+@app.get("/connection-status")
+async def connection_status():
+    return {
+        "connected": bool(
+            TIENDANUBE_ACCESS_TOKEN and TIENDANUBE_STORE_ID
+        ),
+        "store_id": TIENDANUBE_STORE_ID if TIENDANUBE_STORE_ID else None
+    }
 
 
 @app.post("/webhooks/tiendanube")
@@ -113,28 +147,19 @@ async def webhook(request: Request):
 
 @app.post("/webhooks/store-redact")
 async def store_redact(request: Request):
-    body = await request.json()
-
-    print("STORE REDACT:", body)
-
+    await request.json()
     return {"received": True}
 
 
 @app.post("/webhooks/customers-redact")
 async def customers_redact(request: Request):
-    body = await request.json()
-
-    print("CUSTOMERS REDACT:", body)
-
+    await request.json()
     return {"received": True}
 
 
 @app.post("/webhooks/customers-data-request")
 async def customers_data_request(request: Request):
-    body = await request.json()
-
-    print("CUSTOMERS DATA REQUEST:", body)
-
+    await request.json()
     return {"received": True}
 
 
