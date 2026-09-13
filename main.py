@@ -12,10 +12,28 @@ app = FastAPI(title="CUBIKA TRAFFIC BOT")
 TIENDANUBE_CLIENT_ID = os.getenv("TIENDANUBE_CLIENT_ID", "")
 TIENDANUBE_CLIENT_SECRET = os.getenv("TIENDANUBE_CLIENT_SECRET", "")
 TIENDANUBE_REDIRECT_URI = os.getenv("TIENDANUBE_REDIRECT_URI", "")
-
-# Credenciales persistentes cargadas desde Render
 TIENDANUBE_ACCESS_TOKEN = os.getenv("TIENDANUBE_ACCESS_TOKEN", "")
 TIENDANUBE_STORE_ID = os.getenv("TIENDANUBE_STORE_ID", "")
+
+
+def get_products():
+    if not TIENDANUBE_ACCESS_TOKEN or not TIENDANUBE_STORE_ID:
+        return []
+
+    products_request = URLRequest(
+        f"https://api.tiendanube.com/v1/{TIENDANUBE_STORE_ID}/products",
+        headers={
+            "Authentication": f"bearer {TIENDANUBE_ACCESS_TOKEN}",
+            "User-Agent": "CUBIKA TRAFFIC BOT",
+            "Content-Type": "application/json",
+        },
+        method="GET",
+    )
+
+    with urlopen(products_request, timeout=20) as response:
+        products_data = response.read().decode("utf-8")
+
+    return json.loads(products_data)
 
 
 @app.get("/")
@@ -23,8 +41,333 @@ async def home():
     return {
         "status": "ok",
         "app": "CUBIKA TRAFFIC BOT",
-        "message": "Backend funcionando correctamente."
+        "message": "Backend funcionando correctamente.",
+        "dashboard": "/dashboard"
     }
+
+
+@app.get("/dashboard", response_class=HTMLResponse)
+async def dashboard():
+    connected = bool(TIENDANUBE_ACCESS_TOKEN and TIENDANUBE_STORE_ID)
+
+    try:
+        products = get_products() if connected else []
+    except Exception:
+        products = []
+
+    product_cards = ""
+
+    for product in products[:30]:
+        name_data = product.get("name", {})
+        name = (
+            name_data.get("es")
+            or name_data.get("pt")
+            or name_data.get("en")
+            or "Producto sin nombre"
+        )
+
+        handle_data = product.get("handle", {})
+        handle = (
+            handle_data.get("es")
+            or handle_data.get("pt")
+            or handle_data.get("en")
+            or ""
+        )
+
+        canonical_url = product.get("canonical_url", "")
+
+        variants = product.get("variants", [])
+        price = "Sin precio"
+
+        if variants:
+            price_value = variants[0].get("price")
+            if price_value:
+                price = f"$ {price_value}"
+
+        images = product.get("images", [])
+        image_url = ""
+
+        if images:
+            image_url = images[0].get("src", "")
+
+        if not canonical_url and handle:
+            canonical_url = (
+                f"https://cubikacajas.mitiendanube.com/productos/{handle}"
+            )
+
+        image_html = ""
+
+        if image_url:
+            image_html = (
+                f'<img src="{image_url}" '
+                f'alt="{name}" class="product-image">'
+            )
+        else:
+            image_html = (
+                '<div class="no-image">Sin imagen</div>'
+            )
+
+        button_html = ""
+
+        if canonical_url:
+            button_html = (
+                f'<a href="{canonical_url}" '
+                f'target="_blank" class="product-button">'
+                f'Ver producto</a>'
+            )
+
+        product_cards += f"""
+        <div class="product-card">
+            {image_html}
+            <div class="product-info">
+                <h3>{name}</h3>
+                <div class="price">{price}</div>
+                {button_html}
+            </div>
+        </div>
+        """
+
+    status_text = "Conectado" if connected else "Desconectado"
+    status_class = "connected" if connected else "disconnected"
+
+    html = f"""
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <title>CUBIKA TRAFFIC BOT</title>
+
+        <style>
+            * {{
+                box-sizing: border-box;
+            }}
+
+            body {{
+                margin: 0;
+                font-family: Arial, Helvetica, sans-serif;
+                background: #f4f6f8;
+                color: #222;
+            }}
+
+            header {{
+                background: #111827;
+                color: white;
+                padding: 24px 30px;
+            }}
+
+            header h1 {{
+                margin: 0;
+                font-size: 28px;
+            }}
+
+            header p {{
+                margin: 6px 0 0;
+                color: #d1d5db;
+            }}
+
+            .container {{
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 30px 20px;
+            }}
+
+            .status-card {{
+                background: white;
+                border-radius: 14px;
+                padding: 22px;
+                margin-bottom: 25px;
+                box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+            }}
+
+            .status-row {{
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                gap: 20px;
+                flex-wrap: wrap;
+            }}
+
+            .status-badge {{
+                display: inline-block;
+                padding: 8px 14px;
+                border-radius: 999px;
+                color: white;
+                font-weight: bold;
+            }}
+
+            .connected {{
+                background: #16a34a;
+            }}
+
+            .disconnected {{
+                background: #dc2626;
+            }}
+
+            .stats {{
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+                gap: 15px;
+                margin-top: 20px;
+            }}
+
+            .stat {{
+                background: #f9fafb;
+                border-radius: 10px;
+                padding: 16px;
+            }}
+
+            .stat strong {{
+                display: block;
+                font-size: 22px;
+                margin-top: 5px;
+            }}
+
+            h2 {{
+                margin-top: 35px;
+            }}
+
+            .products-grid {{
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+                gap: 20px;
+            }}
+
+            .product-card {{
+                background: white;
+                border-radius: 14px;
+                overflow: hidden;
+                box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+                display: flex;
+                flex-direction: column;
+            }}
+
+            .product-image {{
+                width: 100%;
+                height: 210px;
+                object-fit: cover;
+                background: #eee;
+            }}
+
+            .no-image {{
+                height: 210px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: #e5e7eb;
+                color: #6b7280;
+            }}
+
+            .product-info {{
+                padding: 16px;
+                display: flex;
+                flex-direction: column;
+                flex-grow: 1;
+            }}
+
+            .product-info h3 {{
+                font-size: 16px;
+                margin: 0 0 12px;
+                line-height: 1.35;
+            }}
+
+            .price {{
+                font-size: 18px;
+                font-weight: bold;
+                margin-bottom: 16px;
+            }}
+
+            .product-button {{
+                margin-top: auto;
+                display: inline-block;
+                background: #111827;
+                color: white;
+                text-decoration: none;
+                padding: 10px 14px;
+                border-radius: 8px;
+                text-align: center;
+            }}
+
+            .product-button:hover {{
+                background: #374151;
+            }}
+
+            .empty {{
+                background: white;
+                padding: 25px;
+                border-radius: 12px;
+            }}
+
+            footer {{
+                text-align: center;
+                padding: 30px;
+                color: #6b7280;
+                font-size: 14px;
+            }}
+        </style>
+    </head>
+
+    <body>
+
+        <header>
+            <h1>CUBIKA TRAFFIC BOT</h1>
+            <p>Panel de control de CUBIKACAJAS</p>
+        </header>
+
+        <div class="container">
+
+            <div class="status-card">
+
+                <div class="status-row">
+                    <div>
+                        <h2 style="margin:0;">Estado de conexión</h2>
+                        <p>Tienda ID: {TIENDANUBE_STORE_ID or "No configurada"}</p>
+                    </div>
+
+                    <span class="status-badge {status_class}">
+                        {status_text}
+                    </span>
+                </div>
+
+                <div class="stats">
+                    <div class="stat">
+                        Productos cargados
+                        <strong>{len(products)}</strong>
+                    </div>
+
+                    <div class="stat">
+                        Estado API
+                        <strong>{"OK" if connected else "ERROR"}</strong>
+                    </div>
+
+                    <div class="stat">
+                        Permiso
+                        <strong>Solo lectura</strong>
+                    </div>
+                </div>
+
+            </div>
+
+            <h2>Productos de CUBIKACAJAS</h2>
+
+            {
+                f'<div class="products-grid">{product_cards}</div>'
+                if product_cards
+                else '<div class="empty">No se encontraron productos.</div>'
+            }
+
+        </div>
+
+        <footer>
+            CUBIKA TRAFFIC BOT
+        </footer>
+
+    </body>
+    </html>
+    """
+
+    return HTMLResponse(html)
 
 
 @app.get("/install")
@@ -105,7 +448,8 @@ async def oauth_callback(request: Request):
             "<h2>CUBIKA TRAFFIC BOT</h2>"
             "<p>Autorización recibida correctamente.</p>"
             "<p>La conexión con Tiendanube está funcionando.</p>"
-            "<p>Las credenciales ya están configuradas de forma persistente en Render.</p>"
+            "<p>Las credenciales persistentes ya están configuradas en Render.</p>"
+            '<p><a href="/dashboard">Abrir panel</a></p>'
         )
 
     except Exception as error:
@@ -136,20 +480,8 @@ async def products():
         )
 
     try:
-        products_request = URLRequest(
-            f"https://api.tiendanube.com/v1/{TIENDANUBE_STORE_ID}/products",
-            headers={
-                "Authentication": f"bearer {TIENDANUBE_ACCESS_TOKEN}",
-                "User-Agent": "CUBIKA TRAFFIC BOT",
-                "Content-Type": "application/json",
-            },
-            method="GET",
-        )
-
-        with urlopen(products_request, timeout=20) as response:
-            products_data = response.read().decode("utf-8")
-
-        return JSONResponse(content=json.loads(products_data))
+        products_data = get_products()
+        return JSONResponse(content=products_data)
 
     except Exception as error:
         return JSONResponse(
