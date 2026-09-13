@@ -13,10 +13,9 @@ TIENDANUBE_CLIENT_ID = os.getenv("TIENDANUBE_CLIENT_ID", "")
 TIENDANUBE_CLIENT_SECRET = os.getenv("TIENDANUBE_CLIENT_SECRET", "")
 TIENDANUBE_REDIRECT_URI = os.getenv("TIENDANUBE_REDIRECT_URI", "")
 
-# Almacenamiento temporal en memoria.
-# Más adelante lo pasaremos a almacenamiento persistente.
-TIENDANUBE_ACCESS_TOKEN = ""
-TIENDANUBE_STORE_ID = ""
+# Credenciales persistentes cargadas desde Render
+TIENDANUBE_ACCESS_TOKEN = os.getenv("TIENDANUBE_ACCESS_TOKEN", "")
+TIENDANUBE_STORE_ID = os.getenv("TIENDANUBE_STORE_ID", "")
 
 
 @app.get("/")
@@ -54,9 +53,6 @@ async def install():
 
 @app.get("/oauth/callback", response_class=HTMLResponse)
 async def oauth_callback(request: Request):
-    global TIENDANUBE_ACCESS_TOKEN
-    global TIENDANUBE_STORE_ID
-
     code = request.query_params.get("code")
 
     if not code:
@@ -105,17 +101,11 @@ async def oauth_callback(request: Request):
                 status_code=500
             )
 
-        TIENDANUBE_ACCESS_TOKEN = access_token
-        TIENDANUBE_STORE_ID = str(store_id)
-
         return HTMLResponse(
             "<h2>CUBIKA TRAFFIC BOT</h2>"
             "<p>Autorización recibida correctamente.</p>"
             "<p>La conexión con Tiendanube está funcionando.</p>"
-            f"<p>ID de tienda: {TIENDANUBE_STORE_ID}</p>"
-            "<p><strong>IMPORTANTE:</strong> copiá el token de abajo directamente a Render. "
-            "No lo compartas ni lo envíes por chat.</p>"
-            f"<textarea rows='5' cols='80' readonly>{TIENDANUBE_ACCESS_TOKEN}</textarea>"
+            "<p>Las credenciales ya están configuradas de forma persistente en Render.</p>"
         )
 
     except Exception as error:
@@ -135,6 +125,40 @@ async def connection_status():
         ),
         "store_id": TIENDANUBE_STORE_ID if TIENDANUBE_STORE_ID else None
     }
+
+
+@app.get("/products")
+async def products():
+    if not TIENDANUBE_ACCESS_TOKEN or not TIENDANUBE_STORE_ID:
+        return JSONResponse(
+            {"error": "La conexión con Tiendanube no está configurada."},
+            status_code=500
+        )
+
+    try:
+        products_request = URLRequest(
+            f"https://api.tiendanube.com/v1/{TIENDANUBE_STORE_ID}/products",
+            headers={
+                "Authentication": f"bearer {TIENDANUBE_ACCESS_TOKEN}",
+                "User-Agent": "CUBIKA TRAFFIC BOT",
+                "Content-Type": "application/json",
+            },
+            method="GET",
+        )
+
+        with urlopen(products_request, timeout=20) as response:
+            products_data = response.read().decode("utf-8")
+
+        return JSONResponse(content=json.loads(products_data))
+
+    except Exception as error:
+        return JSONResponse(
+            {
+                "error": "No se pudieron consultar los productos.",
+                "detail": str(error),
+            },
+            status_code=500
+        )
 
 
 @app.post("/webhooks/tiendanube")
