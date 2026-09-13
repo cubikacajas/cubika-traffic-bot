@@ -112,8 +112,10 @@ async def oauth_callback(request: Request):
             "<h2>CUBIKA TRAFFIC BOT</h2>"
             "<p>Autorización recibida correctamente.</p>"
             "<p>La conexión con Tiendanube está funcionando.</p>"
-            "<p>Token guardado temporalmente de forma segura.</p>"
             f"<p>ID de tienda: {TIENDANUBE_STORE_ID}</p>"
+            "<p><strong>IMPORTANTE:</strong> copiá el token de abajo directamente a Render. "
+            "No lo compartas ni lo envíes por chat.</p>"
+            f"<textarea rows='5' cols='80' readonly>{TIENDANUBE_ACCESS_TOKEN}</textarea>"
         )
 
     except Exception as error:
