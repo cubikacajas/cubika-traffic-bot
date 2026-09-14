@@ -1718,3 +1718,63 @@ async def ga4_debug():
             },
             status_code=500
         )
+# ============================================================
+# GA4 REALTIME
+# ============================================================
+
+@app.get("/ga4-realtime")
+async def ga4_realtime():
+
+    try:
+
+        client = get_ga4_client()
+
+        request = {
+            "property": f"properties/{GA4_PROPERTY_ID}",
+            "dimensions": [
+                {"name": "unifiedScreenName"},
+                {"name": "country"},
+            ],
+            "metrics": [
+                {"name": "activeUsers"},
+                {"name": "screenPageViews"},
+            ],
+            "limit": 100,
+        }
+
+        response = client.run_realtime_report(
+            request=request
+        )
+
+        rows = []
+
+        for row in response.rows:
+
+            rows.append({
+                "screen": row.dimension_values[0].value,
+                "country": row.dimension_values[1].value,
+                "active_users": int(
+                    float(row.metric_values[0].value or 0)
+                ),
+                "views": int(
+                    float(row.metric_values[1].value or 0)
+                ),
+            })
+
+        return {
+            "connected": True,
+            "property_id": GA4_PROPERTY_ID,
+            "realtime": rows,
+        }
+
+    except Exception as error:
+
+        return JSONResponse(
+            {
+                "connected": False,
+                "property_id":
+                    GA4_PROPERTY_ID or None,
+                "error": str(error),
+            },
+            status_code=500
+        )
