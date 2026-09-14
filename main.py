@@ -1651,3 +1651,70 @@ async def terms():
         "<p>La aplicación se utiliza para integrar "
         "y medir actividades de marketing autorizadas.</p>"
     )
+# ============================================================
+# DIAGNOSTICO GA4
+# ============================================================
+
+@app.get("/ga4-debug")
+async def ga4_debug():
+
+    try:
+
+        client = get_ga4_client()
+
+        request = RunReportRequest(
+            property=f"properties/{GA4_PROPERTY_ID}",
+            date_ranges=[
+                DateRange(
+                    start_date="2daysAgo",
+                    end_date="today",
+                )
+            ],
+            dimensions=[
+                Dimension(name="date"),
+                Dimension(name="sessionManualSource"),
+                Dimension(name="sessionManualMedium"),
+                Dimension(name="sessionManualCampaignName"),
+            ],
+            metrics=[
+                Metric(name="sessions"),
+                Metric(name="activeUsers"),
+            ],
+            limit=100,
+        )
+
+        response = client.run_report(request)
+
+        rows = []
+
+        for row in response.rows:
+
+            rows.append({
+                "date": row.dimension_values[0].value,
+                "source": row.dimension_values[1].value,
+                "medium": row.dimension_values[2].value,
+                "campaign": row.dimension_values[3].value,
+                "sessions": int(
+                    float(row.metric_values[0].value or 0)
+                ),
+                "users": int(
+                    float(row.metric_values[1].value or 0)
+                ),
+            })
+
+        return {
+            "connected": True,
+            "property_id": GA4_PROPERTY_ID,
+            "period": "2daysAgo - today",
+            "rows": rows,
+        }
+
+    except Exception as error:
+
+        return JSONResponse(
+            {
+                "connected": False,
+                "error": str(error),
+            },
+            status_code=500
+        )
