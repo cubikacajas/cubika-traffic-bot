@@ -7,8 +7,22 @@ from urllib.request import Request as URLRequest, urlopen
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 
+from google.analytics.data_v1beta import BetaAnalyticsDataClient
+from google.analytics.data_v1beta.types import (
+    DateRange,
+    Dimension,
+    Metric,
+    RunReportRequest,
+)
+from google.oauth2 import service_account
+
+
 app = FastAPI(title="CUBIKA TRAFFIC BOT")
 
+
+# ============================================================
+# TIENDANUBE
+# ============================================================
 
 TIENDANUBE_CLIENT_ID = os.getenv("TIENDANUBE_CLIENT_ID", "")
 TIENDANUBE_CLIENT_SECRET = os.getenv("TIENDANUBE_CLIENT_SECRET", "")
@@ -17,14 +31,31 @@ TIENDANUBE_ACCESS_TOKEN = os.getenv("TIENDANUBE_ACCESS_TOKEN", "")
 TIENDANUBE_STORE_ID = os.getenv("TIENDANUBE_STORE_ID", "")
 
 
+# ============================================================
+# GOOGLE ANALYTICS 4
+# ============================================================
+
+GA4_PROPERTY_ID = os.getenv("GA4_PROPERTY_ID", "")
+
+GA4_CREDENTIALS_FILE = (
+    "/etc/secrets/ga4-service-account.json"
+)
+
+
+# ============================================================
+# FUNCIONES TIENDANUBE
+# ============================================================
+
 def get_products():
     if not TIENDANUBE_ACCESS_TOKEN or not TIENDANUBE_STORE_ID:
         return []
 
     products_request = URLRequest(
-        f"https://api.tiendanube.com/v1/{TIENDANUBE_STORE_ID}/products",
+        f"https://api.tiendanube.com/v1/"
+        f"{TIENDANUBE_STORE_ID}/products",
         headers={
-            "Authentication": f"bearer {TIENDANUBE_ACCESS_TOKEN}",
+            "Authentication":
+                f"bearer {TIENDANUBE_ACCESS_TOKEN}",
             "User-Agent": "CUBIKA TRAFFIC BOT",
             "Content-Type": "application/json",
         },
@@ -60,37 +91,293 @@ def build_tracking_url(product_url, source):
     }
 
     separator = "&" if "?" in product_url else "?"
-    return product_url + separator + urlencode(params)
 
+    return (
+        product_url
+        + separator
+        + urlencode(params)
+    )
+
+
+# ============================================================
+# FUNCIONES GOOGLE ANALYTICS
+# ============================================================
+
+def get_ga4_client():
+    if not os.path.exists(GA4_CREDENTIALS_FILE):
+        raise FileNotFoundError(
+            "No se encontró el archivo secreto de GA4."
+        )
+
+    credentials = (
+        service_account.Credentials.from_service_account_file(
+            GA4_CREDENTIALS_FILE
+        )
+    )
+
+    return BetaAnalyticsDataClient(
+        credentials=credentials
+    )
+
+
+def get_ga4_summary():
+    """
+    Devuelve métricas generales de los últimos 30 días.
+    """
+
+    if not GA4_PROPERTY_ID:
+        raise ValueError(
+            "GA4_PROPERTY_ID no está configurado."
+        )
+
+    client = get_ga4_client()
+
+    request = RunReportRequest(
+        property=f"properties/{GA4_PROPERTY_ID}",
+        date_ranges=[
+            DateRange(
+                start_date="30daysAgo",
+                end_date="today",
+            )
+        ],
+        metrics=[
+            Metric(name="sessions"),
+            Metric(name="activeUsers"),
+            Metric(name="screenPageViews"),
+        ],
+    )
+
+    response = client.run_report(request)
+
+    result = {
+        "sessions": 0,
+        "active_users": 0,
+        "views": 0,
+    }
+
+    if response.rows:
+        values = response.rows[0].metric_values
+
+        result["sessions"] = int(
+            float(values[0].value or 0)
+        )
+
+        result["active_users"] = int(
+            float(values[1].value or 0)
+        )
+
+        result["views"] = int(
+            float(values[2].value or 0)
+        )
+
+    return result
+
+
+def get_ga4_traffic_sources():
+    """
+    Lee campañas UTM de los últimos 30 días.
+    """
+
+    if not GA4_PROPERTY_ID:
+        raise ValueError(
+            "GA4_PROPERTY_ID no está configurado."
+        )
+
+    client = get_ga4_client()
+
+    request = RunReportRequest(
+        property=f"properties/{GA4_PROPERTY_ID}",
+        date_ranges=[
+            DateRange(
+                start_date="30daysAgo",
+                end_date="today",
+            )
+        ],
+        dimensions=[
+            Dimension(
+                name="sessionManualSource"
+            ),
+            Dimension(
+                name="sessionManualMedium"
+            ),
+            Dimension(
+                name="sessionManualCampaignName"
+            ),
+        ],
+        metrics=[
+            Metric(name="sessions"),
+            Metric(name="activeUsers"),
+        ],
+        limit=100,
+    )
+
+    response = client.run_report(request)
+
+    sources = []
+
+    for row in response.rows:
+        source = row.dimension_values[0].value
+        medium = row.dimension_values[1].value
+        campaign = row.dimension_values[2].value
+
+        sessions = int(
+            float(row.metric_values[0].value or 0)
+        )
+
+        users = int(
+            float(row.metric_values[1].value or 0)
+        )
+
+        sources.append({
+            "source": source,
+            "medium": medium,
+            "campaign": campaign,
+            "sessions": sessions,
+            "users": users,
+        })
+
+    return sources
+
+
+def summarize_cubika_channels(sources):
+    """
+    Resume Instagram, Facebook y WhatsApp.
+    """
+
+    result = {
+        "instagram": 0,
+        "facebook": 0,
+        "whatsapp": 0,
+        "campaign_sessions": 0,
+    }
+
+    for row in sources:
+        source = (
+            row.get("source", "")
+            .strip()
+            .lower()
+        )
+
+        campaign = (
+            row.get("campaign", "")
+            .strip()
+            .lower()
+        )
+
+        sessions = row.get("sessions", 0)
+
+        if source == "instagram":
+            result["instagram"] += sessions
+
+        if source == "facebook":
+            result["facebook"] += sessions
+
+        if source == "whatsapp":
+            result["whatsapp"] += sessions
+
+        if campaign == "cubika_traffic_bot":
+            result["campaign_sessions"] += sessions
+
+    return result
+
+
+# ============================================================
+# INICIO
+# ============================================================
 
 @app.get("/")
 async def home():
     return {
         "status": "ok",
         "app": "CUBIKA TRAFFIC BOT",
-        "message": "Backend funcionando correctamente.",
+        "message":
+            "Backend funcionando correctamente.",
         "dashboard": "/dashboard",
     }
 
 
-@app.get("/dashboard", response_class=HTMLResponse)
+# ============================================================
+# DASHBOARD
+# ============================================================
+
+@app.get(
+    "/dashboard",
+    response_class=HTMLResponse
+)
 async def dashboard():
+
+    # ----------------------------
+    # TIENDANUBE
+    # ----------------------------
+
     connected = bool(
-        TIENDANUBE_ACCESS_TOKEN and TIENDANUBE_STORE_ID
+        TIENDANUBE_ACCESS_TOKEN
+        and TIENDANUBE_STORE_ID
     )
 
     api_ok = False
 
     try:
-        products = get_products() if connected else []
+        products = (
+            get_products()
+            if connected
+            else []
+        )
+
         api_ok = connected
+
     except Exception:
         products = []
         api_ok = False
 
+
+    # ----------------------------
+    # GA4
+    # ----------------------------
+
+    ga4_ok = False
+
+    ga4_error = ""
+
+    ga4_summary = {
+        "sessions": 0,
+        "active_users": 0,
+        "views": 0,
+    }
+
+    ga4_channels = {
+        "instagram": 0,
+        "facebook": 0,
+        "whatsapp": 0,
+        "campaign_sessions": 0,
+    }
+
+    ga4_sources = []
+
+    try:
+        ga4_summary = get_ga4_summary()
+
+        ga4_sources = get_ga4_traffic_sources()
+
+        ga4_channels = summarize_cubika_channels(
+            ga4_sources
+        )
+
+        ga4_ok = True
+
+    except Exception as error:
+        ga4_error = str(error)
+        ga4_ok = False
+
+
+    # ----------------------------
+    # PRODUCTOS
+    # ----------------------------
+
     product_cards = ""
 
     for product in products[:30]:
+
         name = get_translation(
             product.get("name"),
             "Producto sin nombre"
@@ -101,7 +388,10 @@ async def dashboard():
             ""
         )
 
-        canonical_url = product.get("canonical_url", "")
+        canonical_url = product.get(
+            "canonical_url",
+            ""
+        )
 
         if not canonical_url and handle:
             canonical_url = (
@@ -109,52 +399,88 @@ async def dashboard():
                 f"productos/{handle}"
             )
 
-        variants = product.get("variants", [])
+        variants = product.get(
+            "variants",
+            []
+        )
+
         price = "Sin precio"
 
         if variants:
-            price_value = variants[0].get("price")
+            price_value = variants[0].get(
+                "price"
+            )
 
             if price_value:
                 price = f"$ {price_value}"
 
-        images = product.get("images", [])
+        images = product.get(
+            "images",
+            []
+        )
+
         image_url = ""
 
         if images:
-            image_url = images[0].get("src", "")
+            image_url = images[0].get(
+                "src",
+                ""
+            )
 
-        safe_name = html.escape(str(name))
-        safe_price = html.escape(str(price))
-        safe_image = html.escape(str(image_url))
-        safe_url = html.escape(str(canonical_url))
+        safe_name = html.escape(
+            str(name)
+        )
+
+        safe_price = html.escape(
+            str(price)
+        )
+
+        safe_image = html.escape(
+            str(image_url),
+            quote=True
+        )
+
+        safe_url = html.escape(
+            str(canonical_url),
+            quote=True
+        )
 
         if image_url:
             image_html = (
                 f'<img src="{safe_image}" '
-                f'alt="{safe_name}" class="product-image">'
+                f'alt="{safe_name}" '
+                f'class="product-image">'
             )
         else:
             image_html = (
-                '<div class="no-image">Sin imagen</div>'
+                '<div class="no-image">'
+                'Sin imagen'
+                '</div>'
             )
 
         marketing_html = ""
 
         if canonical_url:
-            instagram_url = build_tracking_url(
-                canonical_url,
-                "instagram"
+
+            instagram_url = (
+                build_tracking_url(
+                    canonical_url,
+                    "instagram"
+                )
             )
 
-            facebook_url = build_tracking_url(
-                canonical_url,
-                "facebook"
+            facebook_url = (
+                build_tracking_url(
+                    canonical_url,
+                    "facebook"
+                )
             )
 
-            whatsapp_url = build_tracking_url(
-                canonical_url,
-                "whatsapp"
+            whatsapp_url = (
+                build_tracking_url(
+                    canonical_url,
+                    "whatsapp"
+                )
             )
 
             instagram_url_safe = html.escape(
@@ -181,21 +507,30 @@ async def dashboard():
 
                 <button
                     class="channel-button"
-                    onclick="copyLink('{instagram_url_safe}', this)"
+                    onclick="copyLink(
+                        '{instagram_url_safe}',
+                        this
+                    )"
                 >
                     Copiar Instagram
                 </button>
 
                 <button
                     class="channel-button"
-                    onclick="copyLink('{facebook_url_safe}', this)"
+                    onclick="copyLink(
+                        '{facebook_url_safe}',
+                        this
+                    )"
                 >
                     Copiar Facebook
                 </button>
 
                 <button
                     class="channel-button"
-                    onclick="copyLink('{whatsapp_url_safe}', this)"
+                    onclick="copyLink(
+                        '{whatsapp_url_safe}',
+                        this
+                    )"
                 >
                     Copiar WhatsApp
                 </button>
@@ -210,7 +545,9 @@ async def dashboard():
 
             <div class="product-info">
 
-                <h3>{safe_name}</h3>
+                <h3>
+                    {safe_name}
+                </h3>
 
                 <div class="price">
                     {safe_price}
@@ -220,7 +557,8 @@ async def dashboard():
                     f'<a href="{safe_url}" '
                     f'target="_blank" '
                     f'class="product-button">'
-                    f'Ver producto</a>'
+                    f'Ver producto'
+                    f'</a>'
                     if canonical_url
                     else ""
                 }
@@ -232,7 +570,71 @@ async def dashboard():
         </div>
         """
 
-    status_text = "Conectado" if connected else "Desconectado"
+
+    # ----------------------------
+    # TABLA GA4
+    # ----------------------------
+
+    traffic_rows = ""
+
+    for row in ga4_sources:
+
+        source = html.escape(
+            row.get("source", "")
+            or "(direct)"
+        )
+
+        medium = html.escape(
+            row.get("medium", "")
+            or "-"
+        )
+
+        campaign = html.escape(
+            row.get("campaign", "")
+            or "-"
+        )
+
+        sessions = row.get(
+            "sessions",
+            0
+        )
+
+        users = row.get(
+            "users",
+            0
+        )
+
+        traffic_rows += f"""
+        <tr>
+            <td>{source}</td>
+            <td>{medium}</td>
+            <td>{campaign}</td>
+            <td>{sessions}</td>
+            <td>{users}</td>
+        </tr>
+        """
+
+    if not traffic_rows:
+
+        traffic_rows = """
+        <tr>
+            <td colspan="5">
+                Todavía no hay campañas UTM
+                registradas en este período.
+            </td>
+        </tr>
+        """
+
+
+    # ----------------------------
+    # ESTADOS
+    # ----------------------------
+
+    status_text = (
+        "Conectado"
+        if connected
+        else "Desconectado"
+    )
 
     status_class = (
         "connected"
@@ -240,7 +642,28 @@ async def dashboard():
         else "disconnected"
     )
 
-    api_text = "OK" if api_ok else "ERROR"
+    api_text = (
+        "OK"
+        if api_ok
+        else "ERROR"
+    )
+
+    ga4_status_text = (
+        "Conectado"
+        if ga4_ok
+        else "Error"
+    )
+
+    ga4_status_class = (
+        "connected"
+        if ga4_ok
+        else "disconnected"
+    )
+
+
+    # ========================================================
+    # HTML
+    # ========================================================
 
     html_page = f"""
     <!DOCTYPE html>
@@ -253,10 +676,13 @@ async def dashboard():
 
         <meta
             name="viewport"
-            content="width=device-width, initial-scale=1.0"
+            content="width=device-width,
+            initial-scale=1.0"
         >
 
-        <title>CUBIKA TRAFFIC BOT</title>
+        <title>
+            CUBIKA TRAFFIC BOT
+        </title>
 
         <style>
 
@@ -266,7 +692,11 @@ async def dashboard():
 
             body {{
                 margin: 0;
-                font-family: Arial, Helvetica, sans-serif;
+                font-family:
+                    Arial,
+                    Helvetica,
+                    sans-serif;
+
                 background: #f4f6f8;
                 color: #222;
             }}
@@ -293,17 +723,20 @@ async def dashboard():
                 padding: 30px 20px;
             }}
 
-            .status-card {{
+            .card {{
                 background: white;
                 border-radius: 14px;
                 padding: 22px;
                 margin-bottom: 25px;
-                box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+                box-shadow:
+                    0 4px 16px
+                    rgba(0,0,0,0.08);
             }}
 
             .status-row {{
                 display: flex;
-                justify-content: space-between;
+                justify-content:
+                    space-between;
                 align-items: center;
                 gap: 20px;
                 flex-wrap: wrap;
@@ -327,8 +760,13 @@ async def dashboard():
 
             .stats {{
                 display: grid;
+
                 grid-template-columns:
-                    repeat(auto-fit, minmax(180px, 1fr));
+                    repeat(
+                        auto-fit,
+                        minmax(170px, 1fr)
+                    );
+
                 gap: 15px;
                 margin-top: 20px;
             }}
@@ -341,32 +779,86 @@ async def dashboard():
 
             .stat strong {{
                 display: block;
-                font-size: 22px;
+                font-size: 25px;
                 margin-top: 5px;
             }}
 
-            .marketing-intro {{
+            .ga4-card {{
+                border-left:
+                    5px solid #f9ab00;
+            }}
+
+            .channel-grid {{
+                display: grid;
+
+                grid-template-columns:
+                    repeat(
+                        auto-fit,
+                        minmax(170px, 1fr)
+                    );
+
+                gap: 15px;
+                margin-top: 20px;
+            }}
+
+            .channel-stat {{
+                padding: 18px;
+                border: 1px solid #e5e7eb;
+                border-radius: 10px;
                 background: white;
-                padding: 20px;
-                border-radius: 14px;
-                margin: 25px 0;
-                box-shadow: 0 4px 16px rgba(0,0,0,0.06);
             }}
 
-            .marketing-intro h2 {{
-                margin-top: 0;
+            .channel-stat span {{
+                color: #6b7280;
+                font-size: 14px;
             }}
 
-            .marketing-intro p {{
-                margin-bottom: 0;
-                line-height: 1.5;
-                color: #4b5563;
+            .channel-stat strong {{
+                display: block;
+                font-size: 28px;
+                margin-top: 8px;
+            }}
+
+            .table-container {{
+                overflow-x: auto;
+                margin-top: 20px;
+            }}
+
+            table {{
+                width: 100%;
+                border-collapse: collapse;
+            }}
+
+            th {{
+                text-align: left;
+                background: #f3f4f6;
+            }}
+
+            th,
+            td {{
+                padding: 12px;
+                border-bottom:
+                    1px solid #e5e7eb;
+                font-size: 14px;
+            }}
+
+            .error-box {{
+                margin-top: 15px;
+                padding: 12px;
+                background: #fef2f2;
+                border-radius: 8px;
+                color: #991b1b;
             }}
 
             .products-grid {{
                 display: grid;
+
                 grid-template-columns:
-                    repeat(auto-fill, minmax(240px, 1fr));
+                    repeat(
+                        auto-fill,
+                        minmax(240px, 1fr)
+                    );
+
                 gap: 20px;
             }}
 
@@ -374,7 +866,11 @@ async def dashboard():
                 background: white;
                 border-radius: 14px;
                 overflow: hidden;
-                box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+
+                box-shadow:
+                    0 4px 16px
+                    rgba(0,0,0,0.08);
+
                 display: flex;
                 flex-direction: column;
             }}
@@ -388,9 +884,11 @@ async def dashboard():
 
             .no-image {{
                 height: 220px;
+
                 display: flex;
                 align-items: center;
                 justify-content: center;
+
                 background: #e5e7eb;
                 color: #6b7280;
             }}
@@ -426,7 +924,8 @@ async def dashboard():
             }}
 
             .marketing-links {{
-                border-top: 1px solid #e5e7eb;
+                border-top:
+                    1px solid #e5e7eb;
                 padding-top: 14px;
                 margin-top: auto;
             }}
@@ -440,7 +939,9 @@ async def dashboard():
 
             .channel-button {{
                 width: 100%;
-                border: 1px solid #d1d5db;
+                border:
+                    1px solid #d1d5db;
+
                 background: white;
                 padding: 9px;
                 margin-bottom: 7px;
@@ -451,12 +952,6 @@ async def dashboard():
 
             .channel-button:hover {{
                 background: #f3f4f6;
-            }}
-
-            .empty {{
-                background: white;
-                padding: 25px;
-                border-radius: 12px;
             }}
 
             footer {{
@@ -474,78 +969,325 @@ async def dashboard():
 
         <header>
 
-            <h1>CUBIKA TRAFFIC BOT</h1>
+            <h1>
+                CUBIKA TRAFFIC BOT
+            </h1>
 
             <p>
-                Marketing y tráfico para CUBIKACAJAS
+                Marketing, tráfico y productos
+                para CUBIKACAJAS
             </p>
 
         </header>
 
+
         <div class="container">
 
-            <div class="status-card">
+
+            <!-- TIENDANUBE -->
+
+            <div class="card">
 
                 <div class="status-row">
 
                     <div>
 
                         <h2 style="margin:0;">
-                            Estado de conexión
+                            Tiendanube
                         </h2>
 
                         <p>
                             Tienda ID:
-                            {html.escape(TIENDANUBE_STORE_ID or "No configurada")}
+                            {
+                                html.escape(
+                                    TIENDANUBE_STORE_ID
+                                    or "No configurada"
+                                )
+                            }
                         </p>
 
                     </div>
 
-                    <span class="status-badge {status_class}">
+                    <span
+                        class="
+                        status-badge
+                        {status_class}
+                        "
+                    >
                         {status_text}
                     </span>
 
                 </div>
 
+
                 <div class="stats">
 
                     <div class="stat">
+
                         Productos cargados
-                        <strong>{len(products)}</strong>
+
+                        <strong>
+                            {len(products)}
+                        </strong>
+
                     </div>
 
+
                     <div class="stat">
+
                         Estado API
-                        <strong>{api_text}</strong>
+
+                        <strong>
+                            {api_text}
+                        </strong>
+
                     </div>
 
+
                     <div class="stat">
+
                         Permiso
-                        <strong>Solo lectura</strong>
+
+                        <strong>
+                            Solo lectura
+                        </strong>
+
                     </div>
 
                 </div>
 
             </div>
 
-            <div class="marketing-intro">
 
-                <h2>
-                    Marketing y Tráfico
-                </h2>
+            <!-- GOOGLE ANALYTICS -->
 
-                <p>
-                    Cada botón genera un enlace especial para
-                    Instagram, Facebook o WhatsApp.
-                    Las visitas que lleguen mediante esos enlaces
-                    podrán diferenciarse por canal mediante UTM.
-                </p>
+            <div class="card ga4-card">
+
+                <div class="status-row">
+
+                    <div>
+
+                        <h2 style="margin:0;">
+                            Google Analytics 4
+                        </h2>
+
+                        <p>
+                            Tráfico de los últimos
+                            30 días
+                        </p>
+
+                    </div>
+
+                    <span
+                        class="
+                        status-badge
+                        {ga4_status_class}
+                        "
+                    >
+                        {ga4_status_text}
+                    </span>
+
+                </div>
+
+
+                <div class="stats">
+
+                    <div class="stat">
+
+                        Sesiones
+
+                        <strong>
+                            {
+                                ga4_summary[
+                                    "sessions"
+                                ]
+                            }
+                        </strong>
+
+                    </div>
+
+
+                    <div class="stat">
+
+                        Usuarios activos
+
+                        <strong>
+                            {
+                                ga4_summary[
+                                    "active_users"
+                                ]
+                            }
+                        </strong>
+
+                    </div>
+
+
+                    <div class="stat">
+
+                        Vistas
+
+                        <strong>
+                            {
+                                ga4_summary[
+                                    "views"
+                                ]
+                            }
+                        </strong>
+
+                    </div>
+
+
+                    <div class="stat">
+
+                        Campaña CUBIKA
+
+                        <strong>
+                            {
+                                ga4_channels[
+                                    "campaign_sessions"
+                                ]
+                            }
+                        </strong>
+
+                    </div>
+
+                </div>
+
+
+                <h3>
+                    Tráfico generado por canal
+                </h3>
+
+
+                <div class="channel-grid">
+
+                    <div class="channel-stat">
+
+                        <span>
+                            Instagram
+                        </span>
+
+                        <strong>
+                            {
+                                ga4_channels[
+                                    "instagram"
+                                ]
+                            }
+                        </strong>
+
+                        sesiones
+
+                    </div>
+
+
+                    <div class="channel-stat">
+
+                        <span>
+                            Facebook
+                        </span>
+
+                        <strong>
+                            {
+                                ga4_channels[
+                                    "facebook"
+                                ]
+                            }
+                        </strong>
+
+                        sesiones
+
+                    </div>
+
+
+                    <div class="channel-stat">
+
+                        <span>
+                            WhatsApp
+                        </span>
+
+                        <strong>
+                            {
+                                ga4_channels[
+                                    "whatsapp"
+                                ]
+                            }
+                        </strong>
+
+                        sesiones
+
+                    </div>
+
+                </div>
+
+
+                {
+                    (
+                        f'<div class="error-box">'
+                        f'Error GA4: '
+                        f'{html.escape(ga4_error)}'
+                        f'</div>'
+                    )
+                    if not ga4_ok
+                    else ""
+                }
+
+
+                <h3>
+                    Fuentes y campañas
+                </h3>
+
+
+                <div class="table-container">
+
+                    <table>
+
+                        <thead>
+
+                            <tr>
+
+                                <th>
+                                    Fuente
+                                </th>
+
+                                <th>
+                                    Medio
+                                </th>
+
+                                <th>
+                                    Campaña
+                                </th>
+
+                                <th>
+                                    Sesiones
+                                </th>
+
+                                <th>
+                                    Usuarios
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                            {traffic_rows}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
 
             </div>
+
+
+            <!-- PRODUCTOS -->
 
             <h2>
                 Productos de CUBIKACAJAS
             </h2>
+
 
             {
                 f'<div class="products-grid">'
@@ -553,34 +1295,50 @@ async def dashboard():
                 f'</div>'
                 if product_cards
                 else
-                '<div class="empty">'
+                '<div class="card">'
                 'No se encontraron productos.'
                 '</div>'
             }
 
         </div>
 
+
         <footer>
             CUBIKA TRAFFIC BOT
         </footer>
 
+
         <script>
 
-            async function copyLink(url, button) {{
+            async function copyLink(
+                url,
+                button
+            ) {{
 
-                const originalText = button.innerText;
+                const originalText =
+                    button.innerText;
 
                 try {{
 
-                    await navigator.clipboard.writeText(url);
+                    await navigator.clipboard
+                        .writeText(url);
 
-                    button.innerText = "Copiado ✓";
+                    button.innerText =
+                        "Copiado ✓";
 
-                    setTimeout(function() {{
-                        button.innerText = originalText;
-                    }}, 1500);
+                    setTimeout(
+                        function() {{
 
-                }} catch (error) {{
+                            button.innerText =
+                                originalText;
+
+                        }},
+                        1500
+                    );
+
+                }}
+
+                catch (error) {{
 
                     window.prompt(
                         "Copiá este enlace:",
@@ -593,27 +1351,80 @@ async def dashboard():
 
         </script>
 
+
     </body>
 
     </html>
     """
 
-    return HTMLResponse(html_page)
+    return HTMLResponse(
+        html_page
+    )
 
+
+# ============================================================
+# ESTADO GA4
+# ============================================================
+
+@app.get("/ga4-status")
+async def ga4_status():
+
+    try:
+
+        summary = get_ga4_summary()
+
+        return {
+            "connected": True,
+            "property_id":
+                GA4_PROPERTY_ID,
+            "data": summary,
+        }
+
+    except Exception as error:
+
+        return JSONResponse(
+            {
+                "connected": False,
+                "property_id":
+                    GA4_PROPERTY_ID
+                    or None,
+                "error":
+                    str(error),
+            },
+            status_code=500
+        )
+
+
+# ============================================================
+# OAUTH TIENDANUBE
+# ============================================================
 
 @app.get("/install")
 async def install():
 
-    if not TIENDANUBE_CLIENT_ID or not TIENDANUBE_REDIRECT_URI:
+    if (
+        not TIENDANUBE_CLIENT_ID
+        or not TIENDANUBE_REDIRECT_URI
+    ):
+
         return JSONResponse(
-            {"error": "Faltan variables de Tiendanube"},
+            {
+                "error":
+                    "Faltan variables "
+                    "de Tiendanube"
+            },
             status_code=500
         )
 
     params = {
-        "client_id": TIENDANUBE_CLIENT_ID,
-        "redirect_uri": TIENDANUBE_REDIRECT_URI,
-        "response_type": "code",
+        "client_id":
+            TIENDANUBE_CLIENT_ID,
+
+        "redirect_uri":
+            TIENDANUBE_REDIRECT_URI,
+
+        "response_type":
+            "code",
     }
 
     url = (
@@ -623,87 +1434,141 @@ async def install():
         + urlencode(params)
     )
 
-    return {"authorization_url": url}
+    return {
+        "authorization_url":
+            url
+    }
 
 
-@app.get("/oauth/callback", response_class=HTMLResponse)
-async def oauth_callback(request: Request):
+@app.get(
+    "/oauth/callback",
+    response_class=HTMLResponse
+)
+async def oauth_callback(
+    request: Request
+):
 
-    code = request.query_params.get("code")
+    code = request.query_params.get(
+        "code"
+    )
 
     if not code:
+
         return HTMLResponse(
             "<h2>CUBIKA TRAFFIC BOT</h2>"
-            "<p>No se recibió el código de autorización.</p>",
+            "<p>No se recibió el código "
+            "de autorización.</p>",
             status_code=400
         )
 
-    if not TIENDANUBE_CLIENT_ID or not TIENDANUBE_CLIENT_SECRET:
+    if (
+        not TIENDANUBE_CLIENT_ID
+        or not TIENDANUBE_CLIENT_SECRET
+    ):
+
         return HTMLResponse(
             "<h2>CUBIKA TRAFFIC BOT</h2>"
-            "<p>Faltan las credenciales de Tiendanube.</p>",
+            "<p>Faltan las credenciales "
+            "de Tiendanube.</p>",
             status_code=500
         )
 
     try:
 
         data = urlencode({
-            "client_id": TIENDANUBE_CLIENT_ID,
-            "client_secret": TIENDANUBE_CLIENT_SECRET,
-            "grant_type": "authorization_code",
-            "code": code,
+            "client_id":
+                TIENDANUBE_CLIENT_ID,
+
+            "client_secret":
+                TIENDANUBE_CLIENT_SECRET,
+
+            "grant_type":
+                "authorization_code",
+
+            "code":
+                code,
+
         }).encode("utf-8")
 
         token_request = URLRequest(
-            "https://www.tiendanube.com/apps/authorize/token",
+            "https://www.tiendanube.com/"
+            "apps/authorize/token",
+
             data=data,
+
             headers={
                 "Content-Type":
-                    "application/x-www-form-urlencoded"
+                    "application/"
+                    "x-www-form-urlencoded"
             },
+
             method="POST",
         )
 
-        with urlopen(token_request, timeout=20) as response:
+        with urlopen(
+            token_request,
+            timeout=20
+        ) as response:
+
             token_response = (
-                response.read().decode("utf-8")
+                response.read()
+                .decode("utf-8")
             )
 
-        token_data = json.loads(token_response)
+        token_data = json.loads(
+            token_response
+        )
 
-        access_token = token_data.get("access_token")
+        access_token = token_data.get(
+            "access_token"
+        )
 
         store_id = (
             token_data.get("user_id")
             or token_data.get("store_id")
         )
 
-        if not access_token or not store_id:
+        if (
+            not access_token
+            or not store_id
+        ):
+
             return HTMLResponse(
                 "<h2>CUBIKA TRAFFIC BOT</h2>"
                 "<p>Tiendanube respondió, "
-                "pero faltan datos de autorización.</p>",
+                "pero faltan datos "
+                "de autorización.</p>",
                 status_code=500
             )
 
         return HTMLResponse(
             "<h2>CUBIKA TRAFFIC BOT</h2>"
-            "<p>Autorización recibida correctamente.</p>"
-            "<p>La conexión con Tiendanube está funcionando.</p>"
+            "<p>Autorización recibida "
+            "correctamente.</p>"
+            "<p>La conexión con Tiendanube "
+            "está funcionando.</p>"
             '<p><a href="/dashboard">'
             "Abrir panel"
             "</a></p>"
         )
 
     except Exception as error:
+
         return HTMLResponse(
             "<h2>CUBIKA TRAFFIC BOT</h2>"
-            "<p>Se recibió el código, pero hubo "
-            "un error al solicitar el token.</p>"
-            f"<p>Error: {html.escape(str(error))}</p>",
+            "<p>Se recibió el código, "
+            "pero hubo un error al "
+            "solicitar el token.</p>"
+            f"<p>Error: "
+            f"{html.escape(str(error))}"
+            f"</p>",
             status_code=500
         )
 
+
+# ============================================================
+# ESTADO TIENDANUBE
+# ============================================================
 
 @app.get("/connection-status")
 async def connection_status():
@@ -713,6 +1578,7 @@ async def connection_status():
             TIENDANUBE_ACCESS_TOKEN
             and TIENDANUBE_STORE_ID
         ),
+
         "store_id": (
             TIENDANUBE_STORE_ID
             if TIENDANUBE_STORE_ID
@@ -721,16 +1587,24 @@ async def connection_status():
     }
 
 
+# ============================================================
+# PRODUCTOS
+# ============================================================
+
 @app.get("/products")
 async def products():
 
-    if not TIENDANUBE_ACCESS_TOKEN or not TIENDANUBE_STORE_ID:
+    if (
+        not TIENDANUBE_ACCESS_TOKEN
+        or not TIENDANUBE_STORE_ID
+    ):
 
         return JSONResponse(
             {
                 "error":
-                    "La conexión con Tiendanube "
-                    "no está configurada."
+                    "La conexión con "
+                    "Tiendanube no está "
+                    "configurada."
             },
             status_code=500
         )
@@ -748,63 +1622,107 @@ async def products():
         return JSONResponse(
             {
                 "error":
-                    "No se pudieron consultar los productos.",
-                "detail": str(error),
+                    "No se pudieron "
+                    "consultar los productos.",
+
+                "detail":
+                    str(error),
             },
             status_code=500
         )
 
 
+# ============================================================
+# WEBHOOKS
+# ============================================================
+
 @app.post("/webhooks/tiendanube")
-async def webhook(request: Request):
+async def webhook(
+    request: Request
+):
 
     body = await request.body()
 
     return {
         "received": True,
-        "bytes": len(body)
+        "bytes": len(body),
     }
 
 
-@app.post("/webhooks/store-redact")
-async def store_redact(request: Request):
+@app.post(
+    "/webhooks/store-redact"
+)
+async def store_redact(
+    request: Request
+):
 
     await request.json()
 
-    return {"received": True}
+    return {
+        "received": True
+    }
 
 
-@app.post("/webhooks/customers-redact")
-async def customers_redact(request: Request):
-
-    await request.json()
-
-    return {"received": True}
-
-
-@app.post("/webhooks/customers-data-request")
-async def customers_data_request(request: Request):
+@app.post(
+    "/webhooks/customers-redact"
+)
+async def customers_redact(
+    request: Request
+):
 
     await request.json()
 
-    return {"received": True}
+    return {
+        "received": True
+    }
 
 
-@app.get("/privacy", response_class=HTMLResponse)
+@app.post(
+    "/webhooks/customers-data-request"
+)
+async def customers_data_request(
+    request: Request
+):
+
+    await request.json()
+
+    return {
+        "received": True
+    }
+
+
+# ============================================================
+# PRIVACIDAD Y TÉRMINOS
+# ============================================================
+
+@app.get(
+    "/privacy",
+    response_class=HTMLResponse
+)
 async def privacy():
 
     return HTMLResponse(
-        "<h2>Privacidad - CUBIKA TRAFFIC BOT</h2>"
-        "<p>La aplicación utiliza únicamente los datos "
-        "necesarios para operar la integración autorizada.</p>"
+        "<h2>Privacidad - "
+        "CUBIKA TRAFFIC BOT</h2>"
+
+        "<p>La aplicación utiliza "
+        "únicamente los datos necesarios "
+        "para operar la integración "
+        "autorizada.</p>"
     )
 
 
-@app.get("/terms", response_class=HTMLResponse)
+@app.get(
+    "/terms",
+    response_class=HTMLResponse
+)
 async def terms():
 
     return HTMLResponse(
-        "<h2>Términos - CUBIKA TRAFFIC BOT</h2>"
-        "<p>La aplicación se utiliza para integrar y medir "
-        "actividades de marketing autorizadas.</p>"
+        "<h2>Términos - "
+        "CUBIKA TRAFFIC BOT</h2>"
+
+        "<p>La aplicación se utiliza "
+        "para integrar y medir actividades "
+        "de marketing autorizadas.</p>"
     )
