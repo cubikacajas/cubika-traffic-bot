@@ -543,10 +543,11 @@ async def dashboard():
                     Copiar Instagram
                 </button>
 
-                <button
+                                <button
                     class="channel-button"
+                    data-text="{instagram_text_safe}"
                     onclick="copyLink(
-                        '{instagram_text_safe}',
+                        this.dataset.text,
                         this
                     )"
                 >
