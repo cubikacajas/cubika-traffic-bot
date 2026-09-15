@@ -525,6 +525,23 @@ async def dashboard():
                 instagram_text,
                 quote=True
             ).replace("\n", "&#10;")
+            facebook_text = (
+                f"📦 {name}\n\n"
+                "Packaging CUBIKACAJAS para presentar tus productos "
+                "con calidad y estilo.\n\n"
+                f"💰 Precio: {price}\n\n"
+                "✨ Ideal para pastelerías, emprendimientos, "
+                "comercios y regalos.\n\n"
+                "👉 Conocé el producto y comprá online:\n"
+                f"{facebook_url}\n\n"
+                "#CUBIKACAJAS #Packaging #Cajas "
+                "#Pasteleria #Emprendedores"
+            )
+
+            facebook_text_safe = html.escape(
+                facebook_text,
+                quote=True
+            ).replace("\n", "&#10;")
 
             marketing_html = f"""
             <div class="marketing-links">
@@ -562,6 +579,17 @@ async def dashboard():
                     )"
                 >
                     Copiar Facebook
+                </button>
+
+                               <button
+                    class="channel-button"
+                    data-text="{facebook_text_safe}"
+                    onclick="copyLink(
+                        this.dataset.text,
+                        this
+                    )"
+                >
+                                     Copiar texto Facebook
                 </button>
 
                 <button
