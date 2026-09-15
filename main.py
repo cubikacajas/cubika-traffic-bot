@@ -96,12 +96,13 @@ def get_translation(value, default=""):
     return default
 
 
-def build_tracking_url(product_url, source):
+def build_tracking_url(product_url, source, product_name=""):
 
     params = {
         "utm_source": source,
         "utm_medium": "social",
         "utm_campaign": "cubika_traffic_bot",
+        "utm_content": product_name,
     }
 
     separator = "&" if "?" in product_url else "?"
@@ -477,19 +478,22 @@ async def dashboard():
 
         if canonical_url:
 
-            instagram_url = build_tracking_url(
+                       instagram_url = build_tracking_url(
                 canonical_url,
-                "instagram"
+                "instagram",
+                name
             )
 
             facebook_url = build_tracking_url(
                 canonical_url,
-                "facebook"
+                "facebook",
+                name
             )
 
             whatsapp_url = build_tracking_url(
                 canonical_url,
-                "whatsapp"
+                "whatsapp",
+                name
             )
 
             instagram_safe = html.escape(
