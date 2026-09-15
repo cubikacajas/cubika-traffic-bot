@@ -542,7 +542,20 @@ async def dashboard():
                 facebook_text,
                 quote=True
             ).replace("\n", "&#10;")
+            whatsapp_text = (
+                f"📦 {name}\n\n"
+                "Packaging CUBIKACAJAS ✨\n\n"
+                f"💰 Precio: {price}\n\n"
+                "Ideal para pastelerías, emprendimientos, "
+                "comercios y regalos.\n\n"
+                "👉 Mirá el producto y comprá online:\n"
+                f"{whatsapp_url}"
+            )
 
+            whatsapp_text_safe = html.escape(
+                whatsapp_text,
+                quote=True
+            ).replace("\n", "&#10;")
             marketing_html = f"""
             <div class="marketing-links">
 
@@ -601,7 +614,16 @@ async def dashboard():
                 >
                     Copiar WhatsApp
                 </button>
-
+                <button
+                    class="channel-button"
+                    data-text="{whatsapp_text_safe}"
+                    onclick="copyLink(
+                        this.dataset.text,
+                        this
+                    )"
+                >
+                    Copiar texto WhatsApp
+                </button>
             </div>
             """
 
