@@ -525,7 +525,7 @@ instagram_text_safe = html.escape(
     instagram_text,
     quote=True
 ).replace("\n", "&#10;")
-            marketing_html = f"""
+marketing_html = f"""
             <div class="marketing-links">
 
                 <div class="marketing-title">
