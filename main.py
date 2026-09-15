@@ -473,7 +473,7 @@ async def dashboard():
                 '</div>'
             )
 
-               marketing_html = ""
+        marketing_html = ""
 
         if canonical_url:
 
@@ -507,26 +507,6 @@ async def dashboard():
                 quote=True
             )
 
-            instagram_text = f"""🎁 {name}
-
-Packaging CUBIKACAJAS para darle una presentación especial a tus productos.
-
-📦 Presentación: {name}
-💰 Precio: {price}
-
-✨ Ideal para emprendimientos, pastelerías, comercios y regalos.
-
-👉 Mirá el producto acá:
-{instagram_url}
-
-#CUBIKACAJAS #Packaging #Cajas #Emprendedores #Pasteleria
-"""
-
-            instagram_text_safe = html.escape(
-                instagram_text,
-                quote=True
-            ).replace("\n", "&#10;")
-
             marketing_html = f"""
             <div class="marketing-links">
 
@@ -542,16 +522,6 @@ Packaging CUBIKACAJAS para darle una presentación especial a tus productos.
                     )"
                 >
                     Copiar Instagram
-                </button>
-
-                <button
-                    class="channel-button"
-                    onclick="copyLink(
-                        '{instagram_text_safe}',
-                        this
-                    )"
-                >
-                    Copiar texto Instagram
                 </button>
 
                 <button
@@ -608,6 +578,8 @@ Packaging CUBIKACAJAS para darle una presentación especial a tus productos.
 
         </div>
         """
+
+
     # --------------------------------------------------------
     # TABLA GA4
     # --------------------------------------------------------
