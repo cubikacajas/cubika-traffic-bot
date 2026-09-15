@@ -473,7 +473,7 @@ async def dashboard():
                 '</div>'
             )
 
-        marketing_html = ""
+               marketing_html = ""
 
         if canonical_url:
 
@@ -507,6 +507,25 @@ async def dashboard():
                 quote=True
             )
 
+            instagram_text = (
+                f"🎁 {name}\n\n"
+                "Packaging CUBIKACAJAS para darle una presentación "
+                "especial a tus productos.\n\n"
+                f"📦 Presentación: {name}\n"
+                f"💰 Precio: {price}\n\n"
+                "✨ Ideal para emprendimientos, pastelerías, "
+                "comercios y regalos.\n\n"
+                "👉 Mirá el producto acá:\n"
+                f"{instagram_url}\n\n"
+                "#CUBIKACAJAS #Packaging #Cajas "
+                "#Emprendedores #Pasteleria"
+            )
+
+            instagram_text_safe = html.escape(
+                instagram_text,
+                quote=True
+            ).replace("\n", "&#10;")
+
             marketing_html = f"""
             <div class="marketing-links">
 
@@ -522,6 +541,16 @@ async def dashboard():
                     )"
                 >
                     Copiar Instagram
+                </button>
+
+                <button
+                    class="channel-button"
+                    onclick="copyLink(
+                        '{instagram_text_safe}',
+                        this
+                    )"
+                >
+                    Copiar texto Instagram
                 </button>
 
                 <button
