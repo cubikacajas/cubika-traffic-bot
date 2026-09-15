@@ -45,25 +45,40 @@ GA4_CREDENTIALS_FILE = "/etc/secrets/ga4-service-account.json"
 # ============================================================
 
 def get_products():
-
     if not TIENDANUBE_ACCESS_TOKEN or not TIENDANUBE_STORE_ID:
         return []
 
-    request = URLRequest(
-        f"https://api.tiendanube.com/v1/{TIENDANUBE_STORE_ID}/products",
-        headers={
-            "Authentication": f"bearer {TIENDANUBE_ACCESS_TOKEN}",
-            "User-Agent": "CUBIKA TRAFFIC BOT",
-            "Content-Type": "application/json",
-        },
-        method="GET",
-    )
+    all_products = []
+    page = 1
+    per_page = 30
 
-    with urlopen(request, timeout=20) as response:
-        data = response.read().decode("utf-8")
+    while True:
+        request = URLRequest(
+            f"https://api.tiendanube.com/v1/{TIENDANUBE_STORE_ID}/products?page={page}&per_page={per_page}",
+            headers={
+                "Authentication": f"bearer {TIENDANUBE_ACCESS_TOKEN}",
+                "User-Agent": "CUBIKA TRAFFIC BOT",
+                "Content-Type": "application/json",
+            },
+            method="GET",
+        )
 
-    return json.loads(data)
+        with urlopen(request, timeout=20) as response:
+            data = response.read().decode("utf-8")
 
+        products = json.loads(data)
+
+        if not products:
+            break
+
+        all_products.extend(products)
+
+        if len(products) < per_page:
+            break
+
+        page += 1
+
+    return all_products
 
 def get_translation(value, default=""):
 
