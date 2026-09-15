@@ -401,7 +401,7 @@ async def dashboard():
 
     product_cards = ""
 
-    for product in products[:30]:
+    for product in products:
 
         name = get_translation(
             product.get("name"),
