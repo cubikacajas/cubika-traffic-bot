@@ -478,7 +478,8 @@ async def dashboard():
 
         if canonical_url:
 
-                       instagram_url = build_tracking_url(
+                    
+            instagram_url = build_tracking_url(
                 canonical_url,
                 "instagram",
                 name
@@ -494,6 +495,11 @@ async def dashboard():
                 canonical_url,
                 "whatsapp",
                 name
+            )
+
+            instagram_safe = html.escape(
+                instagram_url,
+                quote=True
             )
 
             instagram_safe = html.escape(
