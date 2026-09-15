@@ -573,7 +573,7 @@ marketing_html = f"""
             </div>
             """
 
-        product_cards += f"""
+    product_cards += f"""
         <div class="product-card">
 
             {image_html}
