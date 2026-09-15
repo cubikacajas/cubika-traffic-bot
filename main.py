@@ -473,7 +473,7 @@ async def dashboard():
                 '</div>'
             )
 
-        marketing_html = ""
+               marketing_html = ""
 
         if canonical_url:
 
@@ -506,7 +506,8 @@ async def dashboard():
                 whatsapp_url,
                 quote=True
             )
-instagram_text = f"""🎁 {name}
+
+            instagram_text = f"""🎁 {name}
 
 Packaging CUBIKACAJAS para darle una presentación especial a tus productos.
 
@@ -521,11 +522,12 @@ Packaging CUBIKACAJAS para darle una presentación especial a tus productos.
 #CUBIKACAJAS #Packaging #Cajas #Emprendedores #Pasteleria
 """
 
-instagram_text_safe = html.escape(
-    instagram_text,
-    quote=True
-).replace("\n", "&#10;")
-marketing_html = f"""
+            instagram_text_safe = html.escape(
+                instagram_text,
+                quote=True
+            ).replace("\n", "&#10;")
+
+            marketing_html = f"""
             <div class="marketing-links">
 
                 <div class="marketing-title">
@@ -541,15 +543,17 @@ marketing_html = f"""
                 >
                     Copiar Instagram
                 </button>
-<button
-    class="channel-button"
-    onclick="copyLink(
-        '{instagram_text_safe}',
-        this
-    )"
->
-    Copiar texto Instagram
-</button>
+
+                <button
+                    class="channel-button"
+                    onclick="copyLink(
+                        '{instagram_text_safe}',
+                        this
+                    )"
+                >
+                    Copiar texto Instagram
+                </button>
+
                 <button
                     class="channel-button"
                     onclick="copyLink(
@@ -573,7 +577,7 @@ marketing_html = f"""
             </div>
             """
 
-    product_cards += f"""
+        product_cards += f"""
         <div class="product-card">
 
             {image_html}
@@ -604,8 +608,6 @@ marketing_html = f"""
 
         </div>
         """
-
-
     # --------------------------------------------------------
     # TABLA GA4
     # --------------------------------------------------------
