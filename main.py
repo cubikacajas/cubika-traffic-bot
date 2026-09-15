@@ -506,7 +506,25 @@ async def dashboard():
                 whatsapp_url,
                 quote=True
             )
+instagram_text = f"""🎁 {name}
 
+Packaging CUBIKACAJAS para darle una presentación especial a tus productos.
+
+📦 Presentación: {name}
+💰 Precio: {price}
+
+✨ Ideal para emprendimientos, pastelerías, comercios y regalos.
+
+👉 Mirá el producto acá:
+{instagram_url}
+
+#CUBIKACAJAS #Packaging #Cajas #Emprendedores #Pasteleria
+"""
+
+instagram_text_safe = html.escape(
+    instagram_text,
+    quote=True
+).replace("\n", "&#10;")
             marketing_html = f"""
             <div class="marketing-links">
 
@@ -523,7 +541,15 @@ async def dashboard():
                 >
                     Copiar Instagram
                 </button>
-
+<button
+    class="channel-button"
+    onclick="copyLink(
+        '{instagram_text_safe}',
+        this
+    )"
+>
+    Copiar texto Instagram
+</button>
                 <button
                     class="channel-button"
                     onclick="copyLink(
