@@ -473,7 +473,7 @@ async def dashboard():
                 '</div>'
             )
 
-               marketing_html = ""
+        marketing_html = ""
 
         if canonical_url:
 
