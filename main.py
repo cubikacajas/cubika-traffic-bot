@@ -1781,6 +1781,7 @@ async def ga4_debug():
                 Dimension(name="sessionManualSource"),
                 Dimension(name="sessionManualMedium"),
                 Dimension(name="sessionManualCampaignName"),
+                Dimension(name="sessionManualAdContent"),
             ],
             metrics=[
                 Metric(name="sessions"),
@@ -1800,6 +1801,7 @@ async def ga4_debug():
                 "source": row.dimension_values[1].value,
                 "medium": row.dimension_values[2].value,
                 "campaign": row.dimension_values[3].value,
+                "content": row.dimension_values[4].value,
                 "sessions": int(
                     float(row.metric_values[0].value or 0)
                 ),
