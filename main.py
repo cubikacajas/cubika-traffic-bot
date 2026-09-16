@@ -231,8 +231,8 @@ def get_ga4_traffic_sources():
 
 def generate_search_opportunities(product_name):
     """
-    Genera intenciones de búsqueda iniciales a partir
-    del nombre de un producto de Tiendanube.
+    Genera oportunidades de búsqueda según la familia
+    del producto de Tiendanube.
     """
 
     name = (product_name or "").strip()
@@ -241,69 +241,230 @@ def generate_search_opportunities(product_name):
         return []
 
     name_lower = name.lower()
-
     opportunities = []
 
-    # Bombones / chocolates
-    if "bombon" in name_lower:
-        opportunities.extend([
-            "cajas para bombones",
-            "cajas para chocolates",
-            "packaging para bombones",
-            "cajas para regalar bombones",
-            "cajas para emprendimientos de chocolates",
-        ])
+    search_groups = [
+        {
+            "keywords": ["bombon"],
+            "searches": [
+                "cajas para bombones",
+                "cajas para chocolates",
+                "packaging para bombones",
+                "cajas para regalar bombones",
+                "cajas para emprendimientos de chocolates",
+            ],
+        },
+        {
+            "keywords": ["torta", "minitorta", "mini torta"],
+            "searches": [
+                "cajas para tortas",
+                "cajas de cartulina para tortas",
+                "packaging para tortas",
+                "cajas para pastelería",
+                "cajas para transportar tortas",
+            ],
+        },
+        {
+            "keywords": ["cupcake", "muffin"],
+            "searches": [
+                "cajas para cupcakes",
+                "cajas para muffins",
+                "packaging para cupcakes",
+                "cajas para cupcakes con visor",
+                "cajas para pastelería",
+            ],
+        },
+        {
+            "keywords": ["alfajor"],
+            "searches": [
+                "cajas para alfajores",
+                "packaging para alfajores",
+                "cajas de cartulina para alfajores",
+                "cajas para vender alfajores",
+                "cajas para emprendimientos de alfajores",
+            ],
+        },
+        {
+            "keywords": ["cookie", "gallet"],
+            "searches": [
+                "cajas para cookies",
+                "cajas para galletitas",
+                "packaging para cookies",
+                "cajas para cookies con visor",
+                "cajas para emprendimientos de galletitas",
+            ],
+        },
+        {
+            "keywords": ["macaron"],
+            "searches": [
+                "cajas para macarons",
+                "packaging para macarons",
+                "cajas de cartulina para macarons",
+                "cajas para regalar macarons",
+            ],
+        },
+        {
+            "keywords": ["budín", "budin"],
+            "searches": [
+                "cajas para budines",
+                "packaging para budines",
+                "cajas de cartulina para budines",
+                "cajas para budín artesanal",
+            ],
+        },
+        {
+            "keywords": ["desayuno"],
+            "searches": [
+                "cajas para desayunos",
+                "cajas para desayunos sorpresa",
+                "packaging para desayunos",
+                "cajas para desayunos de regalo",
+            ],
+        },
+        {
+            "keywords": ["multiuso"],
+            "searches": [
+                "cajas multiuso",
+                "cajas de cartulina multiuso",
+                "cajas multiuso con visor",
+                "cajas para emprendimientos",
+                "packaging multiuso",
+            ],
+        },
+        {
+            "keywords": ["vino"],
+            "searches": [
+                "cajas para botellas de vino",
+                "estuches para vino",
+                "cajas de cartulina para vino",
+                "packaging para botellas de vino",
+            ],
+        },
+        {
+            "keywords": ["pochoc"],
+            "searches": [
+                "cajas para pochoclos",
+                "pochocleras de cartulina",
+                "envases para pochoclos",
+                "pochocleras para cumpleaños",
+            ],
+        },
+        {
+            "keywords": ["porta flores", "portaflores"],
+            "searches": [
+                "cajas porta flores",
+                "envases para flores",
+                "packaging para flores",
+                "cajas de cartulina para flores",
+            ],
+        },
+        {
+            "keywords": ["canasta"],
+            "searches": [
+                "canastas de cartulina",
+                "cajas tipo canasta",
+                "canastas para regalos",
+                "packaging tipo canasta",
+            ],
+        },
+        {
+            "keywords": ["caja sobre"],
+            "searches": [
+                "cajas tipo sobre",
+                "cajas sobre para regalos",
+                "packaging tipo sobre",
+                "sobres de cartulina para regalos",
+            ],
+        },
+        {
+            "keywords": ["día del niño", "dia del niño"],
+            "searches": [
+                "cajas para día del niño",
+                "packaging día del niño",
+                "cajas de regalo día del niño",
+                "cajas para regalos infantiles",
+            ],
+        },
+        {
+            "keywords": ["papá", "papa"],
+            "searches": [
+                "cajas para día del padre",
+                "cajas de regalo para papá",
+                "packaging día del padre",
+                "cajas para regalos día del padre",
+            ],
+        },
+        {
+            "keywords": ["madre"],
+            "searches": [
+                "cajas para día de la madre",
+                "cajas de regalo para mamá",
+                "packaging día de la madre",
+                "cajas para regalos día de la madre",
+            ],
+        },
+        {
+            "keywords": ["pascua"],
+            "searches": [
+                "cajas para pascuas",
+                "cajas para huevos de pascua",
+                "packaging para pascuas",
+                "cajas de regalo para pascuas",
+            ],
+        },
+        {
+            "keywords": ["navide", "navidad", "felices fiestas"],
+            "searches": [
+                "cajas navideñas",
+                "cajas para regalos de navidad",
+                "packaging navideño",
+                "cajas de cartulina para navidad",
+            ],
+        },
+        {
+            "keywords": ["adviento"],
+            "searches": [
+                "cajas de adviento",
+                "cajas calendario de adviento",
+                "packaging calendario de adviento",
+                "cajas para calendario de navidad",
+            ],
+        },
+        {
+            "keywords": ["amor", "corazón", "corazon"],
+            "searches": [
+                "cajas para regalos románticos",
+                "cajas con corazones",
+                "packaging para san valentín",
+                "cajas para día de los enamorados",
+            ],
+        },
+        {
+            "keywords": ["apilable", "delicia", "dulces momentos"],
+            "searches": [
+                "cajas para productos de pastelería",
+                "cajas para dulces",
+                "packaging para repostería",
+                "cajas de cartulina para emprendimientos",
+            ],
+        },
+        {
+            "keywords": ["regalo", "princess"],
+            "searches": [
+                "cajas para regalos",
+                "cajas de cartulina para regalos",
+                "packaging para regalos",
+                "cajas para emprendimientos",
+            ],
+        },
+    ]
 
-    # Tortas
-    if "torta" in name_lower:
-        opportunities.extend([
-            "cajas para tortas",
-            "cajas de cartulina para tortas",
-            "packaging para tortas",
-            "cajas para pastelería",
-            "cajas para transportar tortas",
-        ])
-
-    # Cupcakes
-    if "cupcake" in name_lower:
-        opportunities.extend([
-            "cajas para cupcakes",
-            "cajas de cartulina para cupcakes",
-            "packaging para cupcakes",
-            "cajas para cupcakes con visor",
-            "cajas para pastelería cupcakes",
-        ])
-
-    # Alfajores
-    if "alfajor" in name_lower:
-        opportunities.extend([
-            "cajas para alfajores",
-            "packaging para alfajores",
-            "cajas de cartulina para alfajores",
-            "cajas para vender alfajores",
-            "cajas para emprendimientos de alfajores",
-        ])
-
-    # Masas finas
-    if "masa" in name_lower:
-        opportunities.extend([
-            "cajas para masas finas",
-            "cajas para masas",
-            "packaging para masas finas",
-            "cajas de pastelería",
-            "cajas para productos de pastelería",
-        ])
-
-    # Regalo
-    if "regalo" in name_lower:
-        opportunities.extend([
-            "cajas para regalos",
-            "cajas de cartulina para regalos",
-            "packaging para regalos",
-            "cajas para emprendimientos",
-        ])
+    for group in search_groups:
+        if any(keyword in name_lower for keyword in group["keywords"]):
+            opportunities.extend(group["searches"])
 
     return list(dict.fromkeys(opportunities))
+    
 @app.get("/search-opportunities-test")
 async def search_opportunities_test():
     products = get_products()
