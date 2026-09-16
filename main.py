@@ -304,7 +304,14 @@ def generate_search_opportunities(product_name):
         ])
 
     return list(dict.fromkeys(opportunities))
+@app.get("/search-opportunities-test")
+async def search_opportunities_test():
+    product_name = "Caja Bombones sin visor Contiene Mucho Amor 1/4kg x 10 unidades"
 
+    return {
+        "product": product_name,
+        "search_opportunities": generate_search_opportunities(product_name),
+    }
 # ============================================================
 # CLASIFICACION DE TRAFICO
 # ============================================================
