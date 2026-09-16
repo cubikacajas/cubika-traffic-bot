@@ -312,8 +312,8 @@ def generate_search_opportunities(product_name):
                 "cajas para emprendimientos",
                 "cajas de presentación",
             ],
-        }, ],
         },
+       
         {
             "keywords": ["torta", "minitorta", "mini torta"],
             "searches": [
