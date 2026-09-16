@@ -309,6 +309,7 @@ async def search_opportunities_test():
     products = get_products()
 
     results = []
+    products_without_opportunities = []
 
     for product in products:
         product_name = get_translation(product.get("name"), "")
@@ -321,11 +322,18 @@ async def search_opportunities_test():
                 "product": product_name,
                 "search_opportunities": opportunities,
             })
+        else:
+            products_without_opportunities.append({
+                "id": product.get("id"),
+                "product": product_name,
+            })
 
     return {
         "total_products": len(products),
         "products_with_opportunities": len(results),
+        "products_without_opportunities_count": len(products_without_opportunities),
         "results": results,
+        "products_without_opportunities": products_without_opportunities,
     }
 # ============================================================
 # CLASIFICACION DE TRAFICO
