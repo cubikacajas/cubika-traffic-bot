@@ -804,6 +804,25 @@ async def dashboard():
                 'Sin imagen'
                 '</div>'
             )
+        search_opportunities = generate_search_opportunities(name)
+
+        opportunities_html = ""
+
+        if search_opportunities:
+            opportunities_items = "".join(
+                f"<li>{html.escape(opportunity)}</li>"
+                for opportunity in search_opportunities
+            )
+
+            opportunities_html = f"""
+            <div class="search-opportunities">
+                <h4>🔎 Oportunidades de búsqueda en Google</h4>
+                <ul>
+                    {opportunities_items}
+                </ul>
+            </div>
+            """
+            
 
         marketing_html = ""
 
@@ -994,6 +1013,7 @@ async def dashboard():
                 }
 
                 {marketing_html}
+            {opportunities_html}
 
             </div>
 
