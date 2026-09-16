@@ -192,11 +192,12 @@ def get_ga4_traffic_sources():
                 end_date="today",
             )
         ],
-        dimensions=[
-            Dimension(name="sessionManualSource"),
-            Dimension(name="sessionManualMedium"),
-            Dimension(name="sessionManualCampaignName"),
-        ],
+       dimensions=[
+    Dimension(name="sessionManualSource"),
+    Dimension(name="sessionManualMedium"),
+    Dimension(name="sessionManualCampaignName"),
+    Dimension(name="sessionManualAdContent"),
+],
         metrics=[
             Metric(name="sessions"),
             Metric(name="activeUsers"),
@@ -214,6 +215,7 @@ def get_ga4_traffic_sources():
             "source": row.dimension_values[0].value,
             "medium": row.dimension_values[1].value,
             "campaign": row.dimension_values[2].value,
+            "content": row.dimension_values[3].value,
             "sessions": int(
                 float(row.metric_values[0].value or 0)
             ),
@@ -689,7 +691,9 @@ async def dashboard():
         campaign = html.escape(
             row.get("campaign", "") or "-"
         )
-
+        content = html.escape(
+            row.get("content", "") or "-"
+        )
         sessions = row.get("sessions", 0)
         users = row.get("users", 0)
 
@@ -708,6 +712,7 @@ async def dashboard():
             <td>{source}</td>
             <td>{medium}</td>
             <td>{campaign}</td>
+            <td>{content}</td>
             <td>{channel_label}</td>
             <td>{sessions}</td>
             <td>{users}</td>
@@ -1339,15 +1344,11 @@ async def dashboard():
                             <tr>
 
                                 <th>Fuente</th>
-
                                 <th>Medio</th>
-
                                 <th>Campaña</th>
-
+                                <th>Producto</th>
                                 <th>Canal reconocido</th>
-
                                 <th>Sesiones</th>
-
                                 <th>Usuarios</th>
 
                             </tr>
