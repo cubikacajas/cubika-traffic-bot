@@ -252,7 +252,67 @@ def generate_search_opportunities(product_name):
                 "packaging para bombones",
                 "cajas para regalar bombones",
                 "cajas para emprendimientos de chocolates",
+                              ],
+        }, {
+            "keywords": ["valija"],
+            "searches": [
+                "cajas valija",
+                "cajas tipo valija",
+                "cajas valija con visor",
+                "cajas de cartulina tipo valija",
+                "packaging tipo valija",
             ],
+        },
+        {
+            "keywords": ["cajita feliz"],
+            "searches": [
+                "cajitas para regalos",
+                "cajitas de cartulina",
+                "cajas para souvenirs",
+                "cajitas para cumpleaños",
+                "packaging para regalos",
+            ],
+        },
+        {
+            "keywords": ["base kraft", "bases kraft"],
+            "searches": [
+                "bases de cartón kraft",
+                "bases kraft para pastelería",
+                "bases para tortas",
+                "bases de cartón para repostería",
+                "bases kraft para alimentos",
+            ],
+        },
+        {
+            "keywords": ["caja mesa"],
+            "searches": [
+                "cajas para mesa dulce",
+                "cajas para candy bar",
+                "cajas de cartulina para mesa dulce",
+                "packaging para mesa dulce",
+                "cajas para eventos",
+            ],
+        },
+        {
+            "keywords": ["tags"],
+            "searches": [
+                "tags para regalos",
+                "etiquetas para regalos",
+                "tags de cartulina",
+                "etiquetas para packaging",
+                "tags para emprendimientos",
+            ],
+        },
+        {
+            "keywords": ["línea selección", "linea seleccion"],
+            "searches": [
+                "cajas de cartulina premium",
+                "cajas premium para regalos",
+                "packaging premium",
+                "cajas para emprendimientos",
+                "cajas de presentación",
+            ],
+        }, ],
         },
         {
             "keywords": ["torta", "minitorta", "mini torta"],
@@ -431,7 +491,7 @@ def generate_search_opportunities(product_name):
             ],
         },
         {
-            "keywords": ["amor", "corazón", "corazon"],
+           "keywords": ["amor", "línea amor", "linea amor"],
             "searches": [
                 "cajas para regalos románticos",
                 "cajas con corazones",
