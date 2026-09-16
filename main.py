@@ -306,11 +306,26 @@ def generate_search_opportunities(product_name):
     return list(dict.fromkeys(opportunities))
 @app.get("/search-opportunities-test")
 async def search_opportunities_test():
-    product_name = "Caja Bombones sin visor Contiene Mucho Amor 1/4kg x 10 unidades"
+    products = get_products()
+
+    results = []
+
+    for product in products:
+        product_name = get_translation(product.get("name"), "")
+
+        opportunities = generate_search_opportunities(product_name)
+
+        if opportunities:
+            results.append({
+                "id": product.get("id"),
+                "product": product_name,
+                "search_opportunities": opportunities,
+            })
 
     return {
-        "product": product_name,
-        "search_opportunities": generate_search_opportunities(product_name),
+        "total_products": len(products),
+        "products_with_opportunities": len(results),
+        "results": results,
     }
 # ============================================================
 # CLASIFICACION DE TRAFICO
