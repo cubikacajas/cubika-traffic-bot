@@ -225,7 +225,85 @@ def get_ga4_traffic_sources():
         })
 
     return sources
+# ====================================================
+# OPORTUNIDADES DE BUSQUEDA EN GOOGLE
+# ====================================================
 
+def generate_search_opportunities(product_name):
+    """
+    Genera intenciones de búsqueda iniciales a partir
+    del nombre de un producto de Tiendanube.
+    """
+
+    name = (product_name or "").strip()
+
+    if not name:
+        return []
+
+    name_lower = name.lower()
+
+    opportunities = []
+
+    # Bombones / chocolates
+    if "bombon" in name_lower:
+        opportunities.extend([
+            "cajas para bombones",
+            "cajas para chocolates",
+            "packaging para bombones",
+            "cajas para regalar bombones",
+            "cajas para emprendimientos de chocolates",
+        ])
+
+    # Tortas
+    if "torta" in name_lower:
+        opportunities.extend([
+            "cajas para tortas",
+            "cajas de cartulina para tortas",
+            "packaging para tortas",
+            "cajas para pastelería",
+            "cajas para transportar tortas",
+        ])
+
+    # Cupcakes
+    if "cupcake" in name_lower:
+        opportunities.extend([
+            "cajas para cupcakes",
+            "cajas de cartulina para cupcakes",
+            "packaging para cupcakes",
+            "cajas para cupcakes con visor",
+            "cajas para pastelería cupcakes",
+        ])
+
+    # Alfajores
+    if "alfajor" in name_lower:
+        opportunities.extend([
+            "cajas para alfajores",
+            "packaging para alfajores",
+            "cajas de cartulina para alfajores",
+            "cajas para vender alfajores",
+            "cajas para emprendimientos de alfajores",
+        ])
+
+    # Masas finas
+    if "masa" in name_lower:
+        opportunities.extend([
+            "cajas para masas finas",
+            "cajas para masas",
+            "packaging para masas finas",
+            "cajas de pastelería",
+            "cajas para productos de pastelería",
+        ])
+
+    # Regalo
+    if "regalo" in name_lower:
+        opportunities.extend([
+            "cajas para regalos",
+            "cajas de cartulina para regalos",
+            "packaging para regalos",
+            "cajas para emprendimientos",
+        ])
+
+    return list(dict.fromkeys(opportunities))
 
 # ============================================================
 # CLASIFICACION DE TRAFICO
