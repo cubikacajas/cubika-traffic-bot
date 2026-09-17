@@ -246,6 +246,39 @@ def get_search_console_status():
 # OPORTUNIDADES DE BUSQUEDA EN GOOGLE
 # ====================================================
 
+def generate_seo_suggestion(product_name, search_opportunities):
+    """
+    Genera un título y una descripción SEO sugeridos.
+    No modifica el producto en Tiendanube.
+    """
+
+    name = (product_name or "").strip()
+
+    if not name:
+        return {
+            "title": "",
+            "description": ""
+        }
+
+    if search_opportunities:
+        main_keyword = search_opportunities[0]
+    else:
+        main_keyword = name
+
+    seo_title = f"{main_keyword.title()} | CUBIKACAJAS"
+
+    seo_description = (
+        f"Encontrá {main_keyword} en CUBIKACAJAS. "
+        f"Packaging de cartulina para emprendimientos, comercios, "
+        f"pastelerías y regalos. Conocé nuestros modelos y opciones."
+    )
+
+    return {
+        "title": seo_title,
+        "description": seo_description
+    }
+
+
 def generate_search_opportunities(product_name):
     """
     Genera oportunidades de búsqueda según la familia
