@@ -868,13 +868,13 @@ seo_html = f"""
 """
 opportunities_html = ""
 
-        if search_opportunities:
+         if search_opportunities:
             opportunities_items = "".join(
-    f'<li>{html.escape(opportunity)} '
-    f'<a href="https://www.google.com/search?q={quote_plus(opportunity)}" '
-    f'target="_blank">Buscar en Google</a></li>'
-    for opportunity in search_opportunities
-)
+                f'<li>{html.escape(opportunity)} '
+                f'<a href="https://www.google.com/search?q={quote_plus(opportunity)}" '
+                f'target="_blank">Buscar en Google</a></li>'
+                for opportunity in search_opportunities
+            )
 
             opportunities_html = f"""
             <div class="search-opportunities">
