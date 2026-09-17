@@ -866,7 +866,7 @@ seo_html = f"""
     {html.escape(seo_suggestion["description"])}</p>
 </div>
 """
-        opportunities_html = ""
+opportunities_html = ""
 
         if search_opportunities:
             opportunities_items = "".join(
