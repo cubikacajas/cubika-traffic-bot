@@ -886,7 +886,7 @@ if search_opportunities:
             """
             
 
-        marketing_html = ""
+marketing_html = ""
 
         if canonical_url:
 
