@@ -868,7 +868,7 @@ seo_html = f"""
 """
 opportunities_html = ""
 
-         if search_opportunities:
+if search_opportunities:
             opportunities_items = "".join(
                 f'<li>{html.escape(opportunity)} '
                 f'<a href="https://www.google.com/search?q={quote_plus(opportunity)}" '
