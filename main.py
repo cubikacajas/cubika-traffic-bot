@@ -855,7 +855,17 @@ async def dashboard():
                 '</div>'
             )
         search_opportunities = generate_search_opportunities(name)
+        seo_suggestion = generate_seo_suggestion(name, search_opportunities)
+seo_html = f"""
+<div class="seo-suggestion">
+    <h4>🚀 Sugerencia SEO</h4>
+    <p><strong>Título SEO sugerido:</strong><br>
+    {html.escape(seo_suggestion["title"])}</p>
 
+    <p><strong>Descripción SEO sugerida:</strong><br>
+    {html.escape(seo_suggestion["description"])}</p>
+</div>
+"""
         opportunities_html = ""
 
         if search_opportunities:
@@ -1064,8 +1074,9 @@ async def dashboard():
                     else ""
                 }
 
-                {marketing_html}
+            {marketing_html}
             {opportunities_html}
+            {seo_html}
 
             </div>
 
