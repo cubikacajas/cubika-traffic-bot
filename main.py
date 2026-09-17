@@ -856,7 +856,7 @@ async def dashboard():
             )
         search_opportunities = generate_search_opportunities(name)
         seo_suggestion = generate_seo_suggestion(name, search_opportunities)
-seo_html = f"""
+        seo_html = f"""
 <div class="seo-suggestion">
     <h4>🚀 Sugerencia SEO</h4>
     <p><strong>Título SEO sugerido:</strong><br>
