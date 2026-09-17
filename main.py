@@ -225,6 +225,23 @@ def get_ga4_traffic_sources():
         })
 
     return sources
+# ==================================================
+# GOOGLE SEARCH CONSOLE
+# ==================================================
+
+def get_search_console_status():
+    """
+    Punto de preparación para integrar Google Search Console.
+    Más adelante devolverá consultas, clics, impresiones,
+    CTR y posición media de CUBIKACAJAS.
+    """
+    return {
+        "connected": False,
+        "status": "pending",
+        "message": "Google Search Console pendiente de conexión."
+    }
+
+
 # ====================================================
 # OPORTUNIDADES DE BUSQUEDA EN GOOGLE
 # ====================================================
