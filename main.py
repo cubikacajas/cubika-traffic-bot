@@ -888,7 +888,7 @@ if search_opportunities:
 
 marketing_html = ""
 
-        if canonical_url:
+if canonical_url:
 
                     
             instagram_url = build_tracking_url(
