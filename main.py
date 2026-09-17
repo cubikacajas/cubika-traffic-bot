@@ -1048,7 +1048,6 @@ if canonical_url:
                 </button>
             </div>
             """
-
         product_cards += f"""
         <div class="product-card">
 
