@@ -866,9 +866,9 @@ seo_html = f"""
     {html.escape(seo_suggestion["description"])}</p>
 </div>
 """
-opportunities_html = ""
+        opportunities_html = ""
 
-if search_opportunities:
+        if search_opportunities:
             opportunities_items = "".join(
                 f'<li>{html.escape(opportunity)} '
                 f'<a href="https://www.google.com/search?q={quote_plus(opportunity)}" '
@@ -884,13 +884,10 @@ if search_opportunities:
                 </ul>
             </div>
             """
-            
 
-marketing_html = ""
+        marketing_html = ""
 
-if canonical_url:
-
-                    
+        if canonical_url:
             instagram_url = build_tracking_url(
                 canonical_url,
                 "instagram",
@@ -907,11 +904,6 @@ if canonical_url:
                 canonical_url,
                 "whatsapp",
                 name
-            )
-
-            instagram_safe = html.escape(
-                instagram_url,
-                quote=True
             )
 
             instagram_safe = html.escape(
@@ -947,6 +939,7 @@ if canonical_url:
                 instagram_text,
                 quote=True
             ).replace("\n", "&#10;")
+
             facebook_text = (
                 f"📦 {name}\n\n"
                 "Packaging CUBIKACAJAS para presentar tus productos "
@@ -964,6 +957,7 @@ if canonical_url:
                 facebook_text,
                 quote=True
             ).replace("\n", "&#10;")
+
             whatsapp_text = (
                 f"📦 {name}\n\n"
                 "Packaging CUBIKACAJAS ✨\n\n"
@@ -978,6 +972,7 @@ if canonical_url:
                 whatsapp_text,
                 quote=True
             ).replace("\n", "&#10;")
+
             marketing_html = f"""
             <div class="marketing-links">
 
@@ -995,7 +990,7 @@ if canonical_url:
                     Copiar Instagram
                 </button>
 
-                                <button
+                <button
                     class="channel-button"
                     data-text="{instagram_text_safe}"
                     onclick="copyLink(
@@ -1016,7 +1011,7 @@ if canonical_url:
                     Copiar Facebook
                 </button>
 
-                               <button
+                <button
                     class="channel-button"
                     data-text="{facebook_text_safe}"
                     onclick="copyLink(
@@ -1024,7 +1019,7 @@ if canonical_url:
                         this
                     )"
                 >
-                                     Copiar texto Facebook
+                    Copiar texto Facebook
                 </button>
 
                 <button
@@ -1036,6 +1031,7 @@ if canonical_url:
                 >
                     Copiar WhatsApp
                 </button>
+
                 <button
                     class="channel-button"
                     data-text="{whatsapp_text_safe}"
@@ -1046,8 +1042,10 @@ if canonical_url:
                 >
                     Copiar texto WhatsApp
                 </button>
+
             </div>
             """
+
         product_cards += f"""
         <div class="product-card">
 
@@ -1073,9 +1071,9 @@ if canonical_url:
                     else ""
                 }
 
-            {marketing_html}
-            {opportunities_html}
-            {seo_html}
+                {marketing_html}
+                {opportunities_html}
+                {seo_html}
 
             </div>
 
