@@ -1991,6 +1991,27 @@ async def dashboard():
 
             </div>
 
+        <!-- CATEGORIAS SEO -->
+
+        <h2>
+            SEO de Categorías de CUBIKACAJAS
+        </h2>
+
+        <p>
+            Sugerencias generadas por CUBIKA TRAFFIC BOT.
+            Por ahora no se realizan cambios automáticos en Tiendanube.
+        </p>
+
+        {
+            f'<div class="products-grid">'
+            f'{category_cards}'
+            f'</div>'
+            if category_cards
+            else
+            '<div class="card">'
+            'No se encontraron categorías.'
+            '</div>'
+        }
 
             <!-- PRODUCTOS -->
 
