@@ -891,11 +891,13 @@ async def dashboard():
     try:
 
         products = get_products() if connected else []
+        categories = get_categories() if connected else []
         api_ok = connected
 
     except Exception:
 
         products = []
+        categories = []
         api_ok = False
 
 
