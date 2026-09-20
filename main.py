@@ -80,6 +80,42 @@ def get_products():
 
     return all_products
 
+def get_categories():
+    if not TIENDANUBE_ACCESS_TOKEN or not TIENDANUBE_STORE_ID:
+        return []
+
+    all_categories = []
+    page = 1
+    per_page = 30
+
+    while True:
+        request = URLRequest(
+            f"https://api.tiendanube.com/v1/{TIENDANUBE_STORE_ID}/categories?page={page}&per_page={per_page}",
+            headers={
+                "Authentication": f"bearer {TIENDANUBE_ACCESS_TOKEN}",
+                "User-Agent": "CUBIKA TRAFFIC BOT",
+                "Content-Type": "application/json",
+            },
+            method="GET",
+        )
+
+        with urlopen(request, timeout=20) as response:
+            data = response.read().decode("utf-8")
+
+        categories = json.loads(data)
+
+        if not categories:
+            break
+
+        all_categories.extend(categories)
+
+        if len(categories) < per_page:
+            break
+
+        page += 1
+
+    return all_categories
+
 def get_translation(value, default=""):
 
     if isinstance(value, str):
