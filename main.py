@@ -115,7 +115,35 @@ def get_categories():
         page += 1
 
     return all_categories
+@app.get("/categories-test")
+async def categories_test():
+    try:
+        categories = get_categories()
 
+        results = []
+
+        for category in categories:
+            category_name = get_translation(category.get("name"), "")
+            seo = generate_category_seo_suggestion(category_name)
+
+            results.append({
+                "id": category.get("id"),
+                "category": category_name,
+                "seo_suggestion": seo,
+            })
+
+        return {
+            "connected": True,
+            "total_categories": len(categories),
+            "categories": results,
+        }
+
+    except Exception as e:
+        return {
+            "connected": False,
+            "error": str(e),
+        }
+        
 def get_translation(value, default=""):
 
     if isinstance(value, str):
