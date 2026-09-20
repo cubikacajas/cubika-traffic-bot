@@ -574,6 +574,103 @@ def generate_search_opportunities(product_name):
             opportunities.extend(group["searches"])
 
     return list(dict.fromkeys(opportunities))
+
+def generate_category_seo_suggestion(category_name):
+    """
+    Genera sugerencias SEO para una categoría de Tiendanube.
+    Solo analiza y recomienda. No modifica la tienda.
+    """
+
+    name = (category_name or "").strip()
+
+    if not name:
+        return {
+            "keyword": "",
+            "title": "",
+            "description": ""
+        }
+
+    name_lower = name.lower()
+
+    category_groups = [
+        {
+            "keywords": ["torta", "desayuno"],
+            "keyword": "cajas para tortas",
+            "title": "Cajas para Tortas y Desayunos | CUBIKACAJAS",
+            "description": (
+                "Cajas para tortas y desayunos en cartulina, con distintos "
+                "modelos y medidas. Packaging para pastelerías y "
+                "emprendimientos en CUBIKACAJAS."
+            ),
+        },
+        {
+            "keywords": ["bombon"],
+            "keyword": "cajas para bombones",
+            "title": "Cajas para Bombones | CUBIKACAJAS",
+            "description": (
+                "Cajas para bombones y chocolates en cartulina. "
+                "Encontrá distintos modelos de packaging para regalos "
+                "y emprendimientos en CUBIKACAJAS."
+            ),
+        },
+        {
+            "keywords": ["cupcake", "muffin"],
+            "keyword": "cajas para cupcakes",
+            "title": "Cajas para Cupcakes y Muffins | CUBIKACAJAS",
+            "description": (
+                "Cajas para cupcakes y muffins en distintos modelos. "
+                "Packaging de cartulina para pastelerías y "
+                "emprendimientos en CUBIKACAJAS."
+            ),
+        },
+        {
+            "keywords": ["cookie", "gallet"],
+            "keyword": "cajas para cookies",
+            "title": "Cajas para Cookies | CUBIKACAJAS",
+            "description": (
+                "Cajas para cookies y galletitas en cartulina. "
+                "Packaging para pastelerías, regalos y emprendimientos "
+                "en CUBIKACAJAS."
+            ),
+        },
+        {
+            "keywords": ["macaron"],
+            "keyword": "cajas para macarons",
+            "title": "Cajas para Macarons | CUBIKACAJAS",
+            "description": (
+                "Cajas para macarons en cartulina y distintos modelos. "
+                "Packaging para pastelerías, regalos y emprendimientos "
+                "en CUBIKACAJAS."
+            ),
+        },
+        {
+            "keywords": ["pan dulce"],
+            "keyword": "cajas para pan dulce",
+            "title": "Cajas para Pan Dulce | CUBIKACAJAS",
+            "description": (
+                "Cajas para pan dulce en cartulina, ideales para "
+                "pastelerías y emprendimientos. Conocé los modelos "
+                "disponibles en CUBIKACAJAS."
+            ),
+        },
+    ]
+
+    for group in category_groups:
+        if any(keyword in name_lower for keyword in group["keywords"]):
+            return {
+                "keyword": group["keyword"],
+                "title": group["title"],
+                "description": group["description"],
+            }
+
+    return {
+        "keyword": name.lower(),
+        "title": f"{name.title()} | CUBIKACAJAS",
+        "description": (
+            f"Conocé nuestra categoría de {name.lower()} en CUBIKACAJAS. "
+            "Packaging de cartulina para comercios y emprendimientos."
+        ),
+    }
     
 @app.get("/search-opportunities-test")
 async def search_opportunities_test():
