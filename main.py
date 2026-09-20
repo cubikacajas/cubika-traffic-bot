@@ -939,7 +939,61 @@ async def dashboard():
         ga4_error = str(error)
         ga4_ok = False
 
+    # --------------------------------------------------
+    # CATEGORIAS - SUGERENCIAS SEO
+    # --------------------------------------------------
 
+    category_cards = ""
+
+    for category in categories:
+
+        category_name = get_translation(
+            category.get("name"),
+            "Categoría sin nombre"
+        )
+
+        category_id = category.get("id")
+
+        seo = generate_category_seo_suggestion(category_name)
+
+        keyword = html.escape(
+            seo.get("keyword", "") or ""
+        )
+
+        seo_title = html.escape(
+            seo.get("title", "") or ""
+        )
+
+        seo_description = html.escape(
+            seo.get("description", "") or ""
+        )
+
+        safe_category_name = html.escape(category_name)
+
+        category_cards += f"""
+        <div class="category-card">
+            <h3>{safe_category_name}</h3>
+
+            <p>
+                <strong>Palabra clave sugerida:</strong><br>
+                {keyword}
+            </p>
+
+            <p>
+                <strong>Título SEO sugerido:</strong><br>
+                {seo_title}
+            </p>
+
+            <p>
+                <strong>Descripción SEO sugerida:</strong><br>
+                {seo_description}
+            </p>
+
+            <p style="font-size:12px;color:#64748b;">
+                ID categoría: {category_id}
+            </p>
+        </div>
+        """
     # --------------------------------------------------------
     # PRODUCTOS
     # --------------------------------------------------------
