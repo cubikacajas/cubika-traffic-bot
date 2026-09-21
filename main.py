@@ -186,7 +186,8 @@ async def category_preview(category_id: int):
                 "found": False,
                 "error": "Categoría no encontrada.",
             }
-
+        print(category)
+        
         category_name = get_translation(
             category.get("name"),
             "Categoría sin nombre",
