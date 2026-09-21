@@ -262,7 +262,7 @@ async def category_apply_test(category_id: int):
             category_name
         )
 
-                category_data = {
+        category_data = {
             "name": category.get("name"),
             "description": category.get("description"),
             "parent": category.get("parent"),
