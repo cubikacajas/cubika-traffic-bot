@@ -145,7 +145,11 @@ async def categories_test():
         results = []
 
         for category in categories:
-            category_name = get_translation(category.get("name"), "")
+            category_name = (
+                get_translation(category.get("name"), "")
+                or get_translation(category.get("handle"), "")
+                or "Categoría sin nombre"
+            )
             seo = generate_category_seo_suggestion(category_name)
 
             results.append({
@@ -268,14 +272,17 @@ async def category_apply_test(category_id: int):
         )
 
         category_data = {
-    "seo_title": {
-        "es": seo.get("title", "")
-    },
-    "seo_description": {
-        "es": seo.get("description", "")
-    }
-}
-
+            "name": {
+                "es": category_name
+            },
+            "seo_title": {
+                "es": seo.get("title", "")
+            },
+            "seo_description": {
+                "es": seo.get("description", "")
+            }
+        }
+ 
         result = update_category(
             category_id,
             category_data
