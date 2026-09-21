@@ -165,6 +165,62 @@ async def categories_test():
             "connected": False,
             "error": str(e),
         }
+
+@app.get("/category-preview/{category_id}")
+async def category_preview(category_id: int):
+    try:
+        categories = get_categories()
+
+        category = next(
+            (
+                item
+                for item in categories
+                if item.get("id") == category_id
+            ),
+            None,
+        )
+
+        if not category:
+            return {
+                "connected": True,
+                "found": False,
+                "error": "Categoría no encontrada.",
+            }
+
+        category_name = get_translation(
+            category.get("name"),
+            "Categoría sin nombre",
+        )
+
+        seo = generate_category_seo_suggestion(
+            category_name
+        )
+
+        return {
+            "connected": True,
+            "found": True,
+            "category_id": category_id,
+            "category": category_name,
+            "current": {
+                "description": category.get("description"),
+                "seo_title": category.get("seo_title"),
+                "seo_description": category.get(
+                    "seo_description"
+                ),
+            },
+            "proposed": {
+                "keyword": seo.get("keyword"),
+                "seo_title": seo.get("title"),
+                "seo_description": seo.get("description"),
+            },
+            "will_modify_tiendanube": False,
+        }
+
+    except Exception as e:
+        return {
+            "connected": False,
+            "error": str(e),
+        }
         
 def get_translation(value, default=""):
 
