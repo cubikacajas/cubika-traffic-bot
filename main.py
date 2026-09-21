@@ -130,7 +130,7 @@ def update_category(category_id, category_data):
             "User-Agent": "CUBIKA TRAFFIC BOT",
             "Content-Type": "application/json",
         },
-        method="PUT",
+        method="PATCH",
     )
 
     with urlopen(request, timeout=20) as response:
