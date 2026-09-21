@@ -225,14 +225,14 @@ async def category_preview(category_id: int):
 async def category_apply_test(category_id: int):
     try:
         # SEGURIDAD:
-# Pruebas autorizadas
-ALLOWED_CATEGORY_IDS = [
-    40097005,   # Cajas Bombones
-    40290245    # PASTELERÍA
-]
+        # Pruebas autorizadas
+        ALLOWED_CATEGORY_IDS = [
+            40097005,   # Cajas Bombones
+            40290245    # PASTELERÍA
+        ]
 
 
-if category_id not in ALLOWED_CATEGORY_IDS:
+        if category_id not in ALLOWED_CATEGORY_IDS:
             return {
                 "connected": True,
                 "updated": False,
