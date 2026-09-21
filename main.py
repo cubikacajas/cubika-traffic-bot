@@ -656,7 +656,7 @@ def generate_category_seo_suggestion(category_name):
 
     name_lower = name.lower()
 
-        category_groups = [
+    category_groups = [
         {
             "keywords": ["tortas altas", "torta alta"],
             "keyword": "cajas para tortas altas",
