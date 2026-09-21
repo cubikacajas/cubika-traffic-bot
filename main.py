@@ -221,6 +221,78 @@ async def category_preview(category_id: int):
             "connected": False,
             "error": str(e),
         }
+@app.get("/category-apply-test/{category_id}")
+async def category_apply_test(category_id: int):
+    try:
+        # SEGURIDAD:
+        # Esta primera prueba solo permite modificar Cajas Bombones.
+        ALLOWED_CATEGORY_ID = 40097005
+
+        if category_id != ALLOWED_CATEGORY_ID:
+            return {
+                "connected": True,
+                "updated": False,
+                "error": "Categoría no autorizada para esta prueba.",
+            }
+
+        categories = get_categories()
+
+        category = next(
+            (
+                item
+                for item in categories
+                if item.get("id") == category_id
+            ),
+            None,
+        )
+
+        if not category:
+            return {
+                "connected": True,
+                "updated": False,
+                "error": "Categoría no encontrada.",
+            }
+
+        category_name = get_translation(
+            category.get("name"),
+            "Categoría sin nombre",
+        )
+
+        seo = generate_category_seo_suggestion(
+            category_name
+        )
+
+        category_data = {
+            "seo_title": {
+                "es": seo.get("title", "")
+            },
+            "seo_description": {
+                "es": seo.get("description", "")
+            },
+        }
+
+        result = update_category(
+            category_id,
+            category_data
+        )
+
+        return {
+            "connected": True,
+            "updated": True,
+            "category_id": category_id,
+            "category": category_name,
+            "seo_title": seo.get("title"),
+            "seo_description": seo.get("description"),
+            "tiendanube_response": result,
+        }
+
+    except Exception as e:
+        return {
+            "connected": False,
+            "updated": False,
+            "error": str(e),
+        }
+
         
 def get_translation(value, default=""):
 
