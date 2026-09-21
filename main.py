@@ -280,7 +280,6 @@ async def category_apply_test(category_id: int):
         "es": seo.get("description", "")
     }
 }
-}
 
         result = update_category(
             category_id,
