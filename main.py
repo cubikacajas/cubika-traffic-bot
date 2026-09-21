@@ -2470,7 +2470,7 @@ async def oauth_callback(request: Request):
                 status_code=500
             )
 
-                  return HTMLResponse(
+        return HTMLResponse(
             "<h2>CUBIKA TRAFFIC BOT</h2>"
             "<p>Autorización recibida correctamente.</p>"
             "<p>La conexión con Tiendanube está funcionando.</p>"
