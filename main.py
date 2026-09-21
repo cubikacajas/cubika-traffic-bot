@@ -225,10 +225,14 @@ async def category_preview(category_id: int):
 async def category_apply_test(category_id: int):
     try:
         # SEGURIDAD:
-        # Esta primera prueba solo permite modificar Cajas Bombones.
-        ALLOWED_CATEGORY_ID = 40097005
+# Pruebas autorizadas
+ALLOWED_CATEGORY_IDS = [
+    40097005,   # Cajas Bombones
+    40290245    # PASTELERÍA
+]
 
-        if category_id != ALLOWED_CATEGORY_ID:
+
+if category_id not in ALLOWED_CATEGORY_IDS:
             return {
                 "connected": True,
                 "updated": False,
