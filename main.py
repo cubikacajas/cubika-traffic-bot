@@ -115,6 +115,28 @@ def get_categories():
         page += 1
 
     return all_categories
+
+def update_category(category_id, category_data):
+    if not TIENDANUBE_ACCESS_TOKEN or not TIENDANUBE_STORE_ID:
+        raise Exception("La conexión con Tiendanube no está configurada.")
+
+    data = json.dumps(category_data).encode("utf-8")
+
+    request = URLRequest(
+        f"https://api.tiendanube.com/v1/{TIENDANUBE_STORE_ID}/categories/{category_id}",
+        data=data,
+        headers={
+            "Authorization": f"Bearer {TIENDANUBE_ACCESS_TOKEN}",
+            "User-Agent": "CUBIKA TRAFFIC BOT",
+            "Content-Type": "application/json",
+        },
+        method="PUT",
+    )
+
+    with urlopen(request, timeout=20) as response:
+        response_data = response.read().decode("utf-8")
+
+    return json.loads(response_data)
 @app.get("/categories-test")
 async def categories_test():
     try:
