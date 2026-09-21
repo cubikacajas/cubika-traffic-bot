@@ -656,7 +656,57 @@ def generate_category_seo_suggestion(category_name):
 
     name_lower = name.lower()
 
-    category_groups = [
+        category_groups = [
+        {
+            "keywords": ["tortas altas", "torta alta"],
+            "keyword": "cajas para tortas altas",
+            "title": "Cajas para Tortas Altas | CUBIKACAJAS",
+            "description": (
+                "Cajas para tortas altas en cartulina, ideales para proteger "
+                "y presentar tortas de mayor altura. Encontrá distintos "
+                "modelos y medidas en CUBIKACAJAS."
+            ),
+        },
+        {
+            "keywords": ["mini torta", "minitorta"],
+            "keyword": "cajas para mini tortas",
+            "title": "Cajas para Mini Tortas | CUBIKACAJAS",
+            "description": (
+                "Cajas para mini tortas en cartulina, ideales para pastelerías "
+                "y emprendimientos. Encontrá distintos modelos y medidas "
+                "en CUBIKACAJAS."
+            ),
+        },
+        {
+            "keywords": ["tortas blancas", "torta línea eco", "torta linea eco"],
+            "keyword": "cajas blancas para tortas",
+            "title": "Cajas Blancas para Tortas | CUBIKACAJAS",
+            "description": (
+                "Cajas blancas para tortas en cartulina, disponibles en "
+                "distintos modelos y medidas para pastelerías y "
+                "emprendimientos. Conocelas en CUBIKACAJAS."
+            ),
+        },
+        {
+            "keywords": ["torta micro kraft"],
+            "keyword": "cajas kraft para tortas",
+            "title": "Cajas Kraft para Tortas | CUBIKACAJAS",
+            "description": (
+                "Cajas kraft para tortas, prácticas para presentación y "
+                "traslado. Packaging para pastelerías y emprendimientos "
+                "disponible en CUBIKACAJAS."
+            ),
+        },
+        {
+            "keywords": ["taza", "porción", "porcion"],
+            "keyword": "cajas para porciones de torta",
+            "title": "Cajas para Porciones de Torta | CUBIKACAJAS",
+            "description": (
+                "Cajas para porciones de torta y presentaciones individuales "
+                "en cartulina. Opciones para pastelerías y emprendimientos "
+                "en CUBIKACAJAS."
+            ),
+        },
         {
             "keywords": ["torta", "desayuno"],
             "keyword": "cajas para tortas",
@@ -672,18 +722,18 @@ def generate_category_seo_suggestion(category_name):
             "keyword": "cajas para bombones",
             "title": "Cajas para Bombones | CUBIKACAJAS",
             "description": (
-                "Cajas para bombones y chocolates en cartulina. "
-                "Encontrá distintos modelos de packaging para regalos "
-                "y emprendimientos en CUBIKACAJAS."
+                "Cajas para bombones y chocolates en cartulina, disponibles "
+                "en distintos modelos para regalos y emprendimientos. "
+                "Conocelas en CUBIKACAJAS."
             ),
         },
         {
-            "keywords": ["cupcake", "muffin"],
-            "keyword": "cajas para cupcakes",
-            "title": "Cajas para Cupcakes y Muffins | CUBIKACAJAS",
+            "keywords": ["mini cookies"],
+            "keyword": "cajas para mini cookies",
+            "title": "Cajas para Mini Cookies | CUBIKACAJAS",
             "description": (
-                "Cajas para cupcakes y muffins en distintos modelos. "
-                "Packaging de cartulina para pastelerías y "
+                "Cajas para mini cookies en cartulina, con opciones para "
+                "presentación y venta. Packaging para pastelerías y "
                 "emprendimientos en CUBIKACAJAS."
             ),
         },
@@ -692,8 +742,8 @@ def generate_category_seo_suggestion(category_name):
             "keyword": "cajas para cookies",
             "title": "Cajas para Cookies | CUBIKACAJAS",
             "description": (
-                "Cajas para cookies y galletitas en cartulina. "
-                "Packaging para pastelerías, regalos y emprendimientos "
+                "Cajas para cookies y galletitas en cartulina. Packaging "
+                "para pastelerías, regalos y emprendimientos disponible "
                 "en CUBIKACAJAS."
             ),
         },
@@ -702,9 +752,85 @@ def generate_category_seo_suggestion(category_name):
             "keyword": "cajas para macarons",
             "title": "Cajas para Macarons | CUBIKACAJAS",
             "description": (
-                "Cajas para macarons en cartulina y distintos modelos. "
-                "Packaging para pastelerías, regalos y emprendimientos "
+                "Cajas para macarons en cartulina, disponibles en distintos "
+                "modelos para presentación y venta. Conocelas en CUBIKACAJAS."
+            ),
+        },
+        {
+            "keywords": ["cupcake", "muffin"],
+            "keyword": "cajas para cupcakes",
+            "title": "Cajas para Cupcakes y Muffins | CUBIKACAJAS",
+            "description": (
+                "Cajas para cupcakes y muffins en cartulina, con distintos "
+                "modelos para pastelerías y emprendimientos. "
+                "Conocelas en CUBIKACAJAS."
+            ),
+        },
+        {
+            "keywords": ["budín", "budin"],
+            "keyword": "cajas para budines",
+            "title": "Cajas para Budines | CUBIKACAJAS",
+            "description": (
+                "Cajas para budines en cartulina, ideales para presentación, "
+                "venta y regalo. Encontrá distintos modelos en CUBIKACAJAS."
+            ),
+        },
+        {
+            "keywords": ["multiuso"],
+            "keyword": "cajas multiuso de cartulina",
+            "title": "Cajas Multiuso de Cartulina | CUBIKACAJAS",
+            "description": (
+                "Cajas multiuso de cartulina para productos, regalos y "
+                "emprendimientos. Encontrá opciones con y sin visor "
                 "en CUBIKACAJAS."
+            ),
+        },
+        {
+            "keywords": ["vino"],
+            "keyword": "cajas para vino",
+            "title": "Cajas para Vino | CUBIKACAJAS",
+            "description": (
+                "Cajas y estuches para vino, ideales para presentación y "
+                "regalo. Conocé las opciones de packaging disponibles "
+                "en CUBIKACAJAS."
+            ),
+        },
+        {
+            "keywords": ["pochoc"],
+            "keyword": "pochocleras de cartulina",
+            "title": "Pochocleras de Cartulina | CUBIKACAJAS",
+            "description": (
+                "Pochocleras de cartulina para eventos, fiestas y "
+                "emprendimientos. Encontrá distintos tamaños y modelos "
+                "en CUBIKACAJAS."
+            ),
+        },
+        {
+            "keywords": ["porta flores", "porta flores"],
+            "keyword": "cajas porta flores",
+            "title": "Cajas Porta Flores | CUBIKACAJAS",
+            "description": (
+                "Cajas y envases porta flores en cartulina para arreglos, "
+                "regalos y emprendimientos. Conocé nuestros modelos "
+                "en CUBIKACAJAS."
+            ),
+        },
+        {
+            "keywords": ["canasta"],
+            "keyword": "canastas de cartulina",
+            "title": "Canastas de Cartulina | CUBIKACAJAS",
+            "description": (
+                "Canastas de cartulina para regalos, flores y presentaciones. "
+                "Encontrá distintos formatos y modelos en CUBIKACAJAS."
+            ),
+        },
+        {
+            "keywords": ["caja sobre"],
+            "keyword": "cajas tipo sobre",
+            "title": "Cajas Tipo Sobre | CUBIKACAJAS",
+            "description": (
+                "Cajas tipo sobre de cartulina para regalos y presentaciones. "
+                "Conocé los modelos disponibles en CUBIKACAJAS."
             ),
         },
         {
@@ -712,13 +838,110 @@ def generate_category_seo_suggestion(category_name):
             "keyword": "cajas para pan dulce",
             "title": "Cajas para Pan Dulce | CUBIKACAJAS",
             "description": (
-                "Cajas para pan dulce en cartulina, ideales para "
-                "pastelerías y emprendimientos. Conocé los modelos "
-                "disponibles en CUBIKACAJAS."
+                "Cajas para pan dulce en cartulina, ideales para pastelerías, "
+                "regalos y emprendimientos. Conocé los modelos disponibles "
+                "en CUBIKACAJAS."
+            ),
+        },
+        {
+            "keywords": ["conos papas"],
+            "keyword": "conos para papas fritas",
+            "title": "Conos para Papas Fritas | CUBIKACAJAS",
+            "description": (
+                "Conos de cartulina para papas fritas, ideales para locales "
+                "gastronómicos, eventos y delivery. Conocelos en CUBIKACAJAS."
+            ),
+        },
+        {
+            "keywords": ["porta panchos"],
+            "keyword": "envases para panchos",
+            "title": "Envases para Panchos | CUBIKACAJAS",
+            "description": (
+                "Envases de cartulina para panchos, ideales para gastronomía, "
+                "eventos y delivery. Conocé las opciones de CUBIKACAJAS."
+            ),
+        },
+        {
+            "keywords": ["adviento"],
+            "keyword": "cajas de adviento",
+            "title": "Cajas de Adviento | CUBIKACAJAS",
+            "description": (
+                "Cajas de adviento de cartulina para regalos y productos "
+                "especiales. Encontrá modelos para la temporada "
+                "en CUBIKACAJAS."
+            ),
+        },
+        {
+            "keywords": ["día del niño", "dia del niño"],
+            "keyword": "cajas para el Día del Niño",
+            "title": "Cajas para el Día del Niño | CUBIKACAJAS",
+            "description": (
+                "Cajas de cartulina para regalos del Día del Niño. "
+                "Encontrá modelos especiales para comercios y "
+                "emprendimientos en CUBIKACAJAS."
+            ),
+        },
+        {
+            "keywords": ["papá", "papa"],
+            "keyword": "cajas para el Día del Padre",
+            "title": "Cajas para el Día del Padre | CUBIKACAJAS",
+            "description": (
+                "Cajas de cartulina para regalos del Día del Padre. "
+                "Packaging especial para comercios y emprendimientos "
+                "en CUBIKACAJAS."
+            ),
+        },
+        {
+            "keywords": ["madre"],
+            "keyword": "cajas para el Día de la Madre",
+            "title": "Cajas para el Día de la Madre | CUBIKACAJAS",
+            "description": (
+                "Cajas de cartulina para regalos del Día de la Madre. "
+                "Encontrá modelos para comercios y emprendimientos "
+                "en CUBIKACAJAS."
+            ),
+        },
+        {
+            "keywords": ["navideñ", "felices fiestas"],
+            "keyword": "cajas navideñas",
+            "title": "Cajas Navideñas | CUBIKACAJAS",
+            "description": (
+                "Cajas navideñas de cartulina para regalos, productos y "
+                "presentaciones de fin de año. Conocé nuestros modelos "
+                "en CUBIKACAJAS."
+            ),
+        },
+        {
+            "keywords": ["pascua"],
+            "keyword": "cajas para Pascuas",
+            "title": "Cajas para Pascuas | CUBIKACAJAS",
+            "description": (
+                "Cajas de cartulina para Pascuas, chocolates y regalos. "
+                "Encontrá distintos modelos para emprendimientos "
+                "en CUBIKACAJAS."
+            ),
+        },
+        {
+            "keywords": ["pastelería", "pasteleria"],
+            "keyword": "cajas para pastelería",
+            "title": "Cajas para Pastelería | CUBIKACAJAS",
+            "description": (
+                "Cajas de cartulina para pastelería, tortas, bombones, "
+                "cookies, cupcakes y más. Encontrá packaging para tu "
+                "emprendimiento en CUBIKACAJAS."
+            ),
+        },
+        {
+            "keywords": ["fechas especiales"],
+            "keyword": "cajas para fechas especiales",
+            "title": "Cajas para Fechas Especiales | CUBIKACAJAS",
+            "description": (
+                "Cajas de cartulina para regalos y fechas especiales. "
+                "Encontrá packaging para celebraciones y temporadas "
+                "en CUBIKACAJAS."
             ),
         },
     ]
-
     for group in category_groups:
         if any(keyword in name_lower for keyword in group["keywords"]):
             return {
