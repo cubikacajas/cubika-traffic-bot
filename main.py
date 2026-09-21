@@ -2470,13 +2470,12 @@ async def oauth_callback(request: Request):
                 status_code=500
             )
 
-        return HTMLResponse(
-    "<h2>CUBIKA TRAFFIC BOT</h2>"
-    "<p>Autorización recibida correctamente.</p>"
-    "<p>Copiá el siguiente token y guardalo directamente en Render.</p>"
-    f'<textarea style="width:90%;height:100px;">{html.escape(access_token)}</textarea>'
-    "<p><strong>No compartas este token con nadie.</strong></p>"
-)
+          return HTMLResponse(
+            "<h2>CUBIKA TRAFFIC BOT</h2>"
+            "<p>Autorización recibida correctamente.</p>"
+            "<p>La conexión con Tiendanube está funcionando.</p>"
+            '<p><a href="/dashboard">Abrir panel</a></p>'
+        )
 
     except Exception as error:
 
