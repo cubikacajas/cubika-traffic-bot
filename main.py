@@ -267,13 +267,15 @@ async def category_apply_test(category_id: int):
         )
 
         category_data = {
-            "seo_title": {
-                "es": seo.get("title", "")
-            },
-            "seo_description": {
-                "es": seo.get("description", "")
-            },
-        }
+    "name": category.get("name"),
+    "description": category.get("description"),
+    "seo_title": {
+        "es": seo.get("title", "")
+    },
+    "seo_description": {
+        "es": seo.get("description", "")
+    }
+}
 
         result = update_category(
             category_id,
