@@ -268,12 +268,6 @@ async def category_apply_test(category_id: int):
         )
 
         category_data = {
-         "name": {
-         "es": category_name
-    },
-    "description": {
-        "es": get_translation(category.get("description"), "")
-    },
     "seo_title": {
         "es": seo.get("title", "")
     },
