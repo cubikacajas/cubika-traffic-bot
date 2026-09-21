@@ -92,7 +92,7 @@ def get_categories():
         request = URLRequest(
             f"https://api.tiendanube.com/v1/{TIENDANUBE_STORE_ID}/categories?page={page}&per_page={per_page}",
             headers={
-                "Authentication": f"bearer {TIENDANUBE_ACCESS_TOKEN}",
+                "Authorization": f"Bearer {TIENDANUBE_ACCESS_TOKEN}",
                 "User-Agent": "CUBIKA TRAFFIC BOT",
                 "Content-Type": "application/json",
             },
