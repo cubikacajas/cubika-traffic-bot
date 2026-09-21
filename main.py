@@ -262,15 +262,19 @@ async def category_apply_test(category_id: int):
             category_name
         )
 
-        category_data = {
-            "name": category.get("name"),
-            "description": category.get("description"),
-            "parent": category.get("parent"),
+                category_data = {
+            "name": {
+                "es": "Cajas Bombones"
+            },
+            "description": {
+                "es": "Cajas Bombones de 1/4 Kg y 1/2 Kg con y sin visor blancas e impresas "
+            },
+            "parent": 40290245,
             "seo_title": {
-                "es": seo.get("title", "")
+                "es": "Cajas para Bombones | CUBIKACAJAS"
             },
             "seo_description": {
-                "es": seo.get("description", "")
+                "es": "Cajas para bombones y chocolates en cartulina, disponibles en distintos modelos para regalos y emprendimientos. Conocelas en CUBIKACAJAS."
             },
         }
 
