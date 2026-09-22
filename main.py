@@ -277,6 +277,34 @@ async def category_apply_test(category_id: int):
             category_name
         )
 
+        current_seo_title = get_translation(
+            category.get("seo_title"),
+            ""
+        ).strip()
+
+        current_seo_description = get_translation(
+            category.get("seo_description"),
+            ""
+        ).strip()
+
+        proposed_seo_title = seo.get("title", "").strip()
+        proposed_seo_description = seo.get("description", "").strip()
+
+        if (
+            current_seo_title == proposed_seo_title
+            and current_seo_description == proposed_seo_description
+        ):
+            return {
+                "connected": True,
+                "updated": False,
+                "category_id": category_id,
+                "category": category_name,
+                "message": "El SEO ya está actualizado. No se realizaron cambios.",
+                "seo_title": current_seo_title,
+                "seo_description": current_seo_description,
+            }
+
+       
         category_data = {
             "name": {
                 "es": category_name
