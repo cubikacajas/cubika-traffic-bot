@@ -339,6 +339,93 @@ async def category_apply_test(category_id: int):
             "error": str(e),
         }
 
+@app.get("/categories-audit")
+async def categories_audit():
+    try:
+        categories = get_categories()
+
+        results = []
+        correct_count = 0
+        missing_count = 0
+        different_count = 0
+
+        for category in categories:
+            category_name = get_translation(
+                category.get("name"),
+                ""
+            ).strip()
+
+            if not category_name or category_name.lower() == "categoría sin nombre":
+                category_name = get_translation(
+                    category.get("handle"),
+                    ""
+                ).strip()
+
+            if category_name.lower() == "pasteleria":
+                category_name = "PASTELERÍA"
+
+            if not category_name:
+                category_name = "Categoría sin nombre"
+
+            current_title = get_translation(
+                category.get("seo_title"),
+                ""
+            ).strip()
+
+            current_description = get_translation(
+                category.get("seo_description"),
+                ""
+            ).strip()
+
+            seo = generate_category_seo_suggestion(category_name)
+
+            proposed_title = seo.get("title", "").strip()
+            proposed_description = seo.get("description", "").strip()
+
+            if not current_title or not current_description:
+                status = "NECESITA SEO"
+                missing_count += 1
+
+            elif (
+                current_title == proposed_title
+                and current_description == proposed_description
+            ):
+                status = "CORRECTA"
+                correct_count += 1
+
+            else:
+                status = "SEO DIFERENTE"
+                different_count += 1
+
+            results.append({
+                "id": category.get("id"),
+                "category": category_name,
+                "status": status,
+                "current": {
+                    "seo_title": current_title,
+                    "seo_description": current_description,
+                },
+                "proposed": {
+                    "seo_title": proposed_title,
+                    "seo_description": proposed_description,
+                },
+            })
+
+        return {
+            "connected": True,
+            "total_categories": len(results),
+            "correct": correct_count,
+            "needs_seo": missing_count,
+            "different_seo": different_count,
+            "categories": results,
+        }
+
+    except Exception as e:
+        return {
+            "connected": False,
+            "error": str(e),
+        }
+
         
 def get_translation(value, default=""):
 
