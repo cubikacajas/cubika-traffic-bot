@@ -1546,11 +1546,28 @@ async def dashboard():
         )
 
         safe_category_name = html.escape(category_name)
+        audit_item = next(
+            (
+                item
+                for item in seo_audit_categories
+                if item.get("id") == category_id
+            ),
+            None,
+        )
 
+        category_status = (
+            audit_item.get("status")
+            if audit_item
+            else "SIN DATOS"
+        )
+
+        safe_category_status = html.escape(category_status)
         category_cards += f"""
         <div class="category-card">
             <h3>{safe_category_name}</h3>
-
+            <p>
+                <strong>Estado SEO:</strong> {safe_category_status}
+            </p>
             <p>
                 <strong>Palabra clave sugerida:</strong><br>
                 {keyword}
