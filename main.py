@@ -234,7 +234,8 @@ async def category_apply_test(category_id: int):
         ALLOWED_CATEGORY_IDS = [
             40097005,   # Cajas Bombones
             40290245,   # PASTELERÍA
-            40097063    # Cajas Cookies
+            40097063,   # Cajas Cookies
+            40097068    # Cajas Mini Cookies con visor
         ]
 
         if category_id not in ALLOWED_CATEGORY_IDS:
