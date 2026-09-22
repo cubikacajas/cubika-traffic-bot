@@ -262,9 +262,10 @@ async def category_apply_test(category_id: int):
                 "error": "Categoría no encontrada.",
             }
 
-        category_name = get_translation(
-            category.get("name"),
-            "Categoría sin nombre",
+        category_name = (
+            get_translation(category.get("name"), "")
+            or get_translation(category.get("handle"), "")
+            or "Categoría sin nombre"
         )
 
         seo = generate_category_seo_suggestion(
