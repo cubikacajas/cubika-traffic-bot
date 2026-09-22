@@ -1405,7 +1405,78 @@ async def dashboard():
         products = []
         categories = []
         api_ok = False
+    # ------------------------------------------------------
+    # AUDITORIA SEO DE CATEGORIAS
+    # ------------------------------------------------------
 
+    seo_audit = {
+        "total": 0,
+        "correct": 0,
+        "needs_seo": 0,
+        "different": 0,
+    }
+
+    seo_audit_categories = []
+
+    for category in categories:
+        category_name = get_translation(
+            category.get("name"),
+            ""
+        ).strip()
+
+        if not category_name or category_name.lower() == "categoría sin nombre":
+            category_name = get_translation(
+                category.get("handle"),
+                ""
+            ).strip()
+
+        if category_name.lower() == "pasteleria":
+            category_name = "PASTELERÍA"
+
+        if not category_name:
+            category_name = "Categoría sin nombre"
+
+        current_title = get_translation(
+            category.get("seo_title"),
+            ""
+        ).strip()
+
+        current_description = get_translation(
+            category.get("seo_description"),
+            ""
+        ).strip()
+
+        seo = generate_category_seo_suggestion(category_name)
+
+        proposed_title = seo.get("title", "").strip()
+        proposed_description = seo.get("description", "").strip()
+
+        if not current_title or not current_description:
+            status = "NECESITA SEO"
+            seo_audit["needs_seo"] += 1
+
+        elif (
+            current_title == proposed_title
+            and current_description == proposed_description
+        ):
+            status = "CORRECTA"
+            seo_audit["correct"] += 1
+
+        else:
+            status = "SEO DIFERENTE"
+            seo_audit["different"] += 1
+
+        seo_audit["total"] += 1
+
+        seo_audit_categories.append({
+            "id": category.get("id"),
+            "category": category_name,
+            "status": status,
+            "current_title": current_title,
+            "current_description": current_description,
+            "proposed_title": proposed_title,
+            "proposed_description": proposed_description,
+        })
 
     # --------------------------------------------------------
     # GA4
