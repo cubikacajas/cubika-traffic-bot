@@ -2578,7 +2578,29 @@ async def dashboard():
             Sugerencias generadas por CUBIKA TRAFFIC BOT.
             Por ahora no se realizan cambios automáticos en Tiendanube.
         </p>
+<div class="stats-grid">
 
+    <div class="card">
+        <h3>Total categorías</h3>
+        <div class="big-number">{seo_audit["total"]}</div>
+    </div>
+
+    <div class="card">
+        <h3>Correctas</h3>
+        <div class="big-number">{seo_audit["correct"]}</div>
+    </div>
+
+    <div class="card">
+        <h3>Necesitan SEO</h3>
+        <div class="big-number">{seo_audit["needs_seo"]}</div>
+    </div>
+
+    <div class="card">
+        <h3>SEO diferente</h3>
+        <div class="big-number">{seo_audit["different"]}</div>
+    </div>
+
+</div>
         {
             f'<div class="products-grid">'
             f'{category_cards}'
