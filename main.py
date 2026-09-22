@@ -339,6 +339,111 @@ async def category_apply_test(category_id: int):
             "updated": False,
             "error": str(e),
         }
+@app.get("/category-approve/{category_id}")
+async def category_approve(category_id: int):
+    try:
+        categories = get_categories()
+
+        category = next(
+            (
+                item
+                for item in categories
+                if item.get("id") == category_id
+            ),
+            None,
+        )
+
+        if not category:
+            return {
+                "connected": True,
+                "updated": False,
+                "error": "Categoría no encontrada.",
+            }
+
+        category_name = get_translation(
+            category.get("name"),
+            ""
+        ).strip()
+
+        if not category_name or category_name.lower() == "categoría sin nombre":
+            category_name = get_translation(
+                category.get("handle"),
+                ""
+            ).strip()
+
+        if category_name.lower() == "pasteleria":
+            category_name = "PASTELERÍA"
+
+        if not category_name:
+            return {
+                "connected": True,
+                "updated": False,
+                "error": "La categoría no tiene un nombre válido.",
+            }
+
+        seo = generate_category_seo_suggestion(category_name)
+
+        current_seo_title = get_translation(
+            category.get("seo_title"),
+            ""
+        ).strip()
+
+        current_seo_description = get_translation(
+            category.get("seo_description"),
+            ""
+        ).strip()
+
+        proposed_seo_title = seo.get("title", "").strip()
+        proposed_seo_description = seo.get("description", "").strip()
+
+        if (
+            current_seo_title == proposed_seo_title
+            and current_seo_description == proposed_seo_description
+        ):
+            return {
+                "connected": True,
+                "updated": False,
+                "category_id": category_id,
+                "category": category_name,
+                "message": "El SEO ya está actualizado. No se realizaron cambios.",
+                "seo_title": current_seo_title,
+                "seo_description": current_seo_description,
+            }
+
+        category_data = {
+            "name": {
+                "es": category_name
+            },
+            "seo_title": {
+                "es": proposed_seo_title
+            },
+            "seo_description": {
+                "es": proposed_seo_description
+            }
+        }
+
+        result = update_category(
+            category_id,
+            category_data
+        )
+
+        return {
+            "connected": True,
+            "updated": True,
+            "category_id": category_id,
+            "category": category_name,
+            "seo_title": proposed_seo_title,
+            "seo_description": proposed_seo_description,
+            "tiendanube_response": result,
+        }
+
+    except Exception as e:
+        return {
+            "connected": False,
+            "updated": False,
+            "error": str(e),
+        }
+
 
 @app.get("/categories-audit")
 async def categories_audit():
