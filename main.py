@@ -868,6 +868,23 @@ async def categories_bulk_confirm(ids: str = ""):
                         aplicará estos cambios solamente después de tu confirmación.
                     </p>
 
+                    <form action="/categories-bulk-apply" method="post">
+    <input type="hidden" name="ids" value="{ids}">
+
+    <button type="submit" style="
+        background:#16a34a;
+        color:white;
+        border:none;
+        padding:14px 20px;
+        border-radius:8px;
+        font-weight:bold;
+        cursor:pointer;
+        margin-bottom:15px;
+    ">
+        Confirmar y aplicar SEO a {len(selected_categories)} categorías
+    </button>
+</form>
+
                     <a href="/categories-bulk-review?ids={ids}">
                         Volver a la revisión
                     </a>
@@ -886,7 +903,190 @@ async def categories_bulk_confirm(ids: str = ""):
             <p><a href="/categories-review">Volver a la revisión SEO</a></p>
             """,
             status_code=500
-        )        
+        )  
+@app.post("/categories-bulk-apply", response_class=HTMLResponse)
+async def categories_bulk_apply(request: Request):
+    try:
+        form = await request.form()
+        ids = form.get("ids", "")
+
+        selected_ids = []
+
+        for raw_id in ids.split(","):
+            raw_id = raw_id.strip()
+
+            if raw_id.isdigit():
+                selected_ids.append(int(raw_id))
+
+        if not selected_ids:
+            return HTMLResponse(
+                """
+                <h2>No se recibieron categorías para actualizar.</h2>
+                <p><a href="/categories-review">Volver a la revisión SEO</a></p>
+                """,
+                status_code=400
+            )
+
+        categories = get_categories()
+
+        selected_categories = [
+            category
+            for category in categories
+            if category.get("id") in selected_ids
+        ]
+
+        if not selected_categories:
+            return HTMLResponse(
+                """
+                <h2>No se encontraron categorías para actualizar.</h2>
+                <p><a href="/categories-review">Volver a la revisión SEO</a></p>
+                """,
+                status_code=404
+            )
+
+        results_html = ""
+        updated_count = 0
+        error_count = 0
+
+        for category in selected_categories:
+            category_id = category.get("id")
+
+            category_name = get_translation(
+                category.get("name"),
+                "Categoría sin nombre"
+            ).strip()
+
+            seo = generate_category_seo_suggestion(category_name)
+
+            proposed_seo_title = seo.get("title", "").strip()
+            proposed_seo_description = seo.get("description", "").strip()
+
+            category_data = {
+                "name": {
+                    "es": category_name
+                },
+                "seo_title": {
+                    "es": proposed_seo_title
+                },
+                "seo_description": {
+                    "es": proposed_seo_description
+                }
+            }
+
+            try:
+                update_category(
+                    category_id,
+                    category_data
+                )
+
+                updated_count += 1
+
+                results_html += f"""
+                <div style="
+                    background:white;
+                    padding:20px;
+                    margin-bottom:15px;
+                    border-radius:12px;
+                ">
+                    <h3>{html.escape(category_name)}</h3>
+                    <p><strong>✓ SEO actualizado correctamente</strong></p>
+                    <p>
+                        <strong>Título:</strong><br>
+                        {html.escape(proposed_seo_title)}
+                    </p>
+                    <p>
+                        <strong>Descripción:</strong><br>
+                        {html.escape(proposed_seo_description)}
+                    </p>
+                </div>
+                """
+
+            except Exception as category_error:
+                error_count += 1
+
+                results_html += f"""
+                <div style="
+                    background:white;
+                    padding:20px;
+                    margin-bottom:15px;
+                    border-radius:12px;
+                ">
+                    <h3>{html.escape(category_name)}</h3>
+                    <p><strong>Error al actualizar esta categoría.</strong></p>
+                    <p>{html.escape(str(category_error))}</p>
+                </div>
+                """
+
+        return HTMLResponse(
+            f"""
+            <!DOCTYPE html>
+            <html lang="es">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport"
+                      content="width=device-width, initial-scale=1.0">
+                <title>Resultado SEO | CUBIKA TRAFFIC BOT</title>
+            </head>
+
+            <body style="
+                font-family:Arial,sans-serif;
+                background:#f3f6fa;
+                margin:0;
+                padding:20px;
+            ">
+
+                <h1>Resultado de actualización SEO</h1>
+
+                <div style="
+                    background:white;
+                    padding:20px;
+                    border-radius:12px;
+                    margin-bottom:20px;
+                ">
+                    <p>
+                        <strong>Categorías actualizadas:</strong>
+                        {updated_count}
+                    </p>
+
+                    <p>
+                        <strong>Errores:</strong>
+                        {error_count}
+                    </p>
+                </div>
+
+                {results_html}
+
+                <p>
+                    <a href="/categories-review">
+                        Volver a la revisión SEO
+                    </a>
+                </p>
+
+                <p>
+                    <a href="/dashboard">
+                        Volver al Dashboard
+                    </a>
+                </p>
+
+            </body>
+            </html>
+            """
+        )
+
+    except Exception as e:
+        return HTMLResponse(
+            f"""
+            <h2>Error al aplicar el SEO de las categorías</h2>
+            <p>{html.escape(str(e))}</p>
+            <p>
+                <a href="/categories-review">
+                    Volver a la revisión SEO
+                </a>
+            </p>
+            """,
+            status_code=500
+        )
+        
 @app.get("/category-confirm/{category_id}", response_class=HTMLResponse)
 async def category_confirm(category_id: int):
     try:
