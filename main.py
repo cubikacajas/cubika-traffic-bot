@@ -758,6 +758,135 @@ async def categories_bulk_review(ids: str = ""):
             """,
             status_code=500
         )
+@app.get("/categories-bulk-confirm", response_class=HTMLResponse)
+async def categories_bulk_confirm(ids: str = ""):
+    try:
+        categories = get_categories()
+
+        selected_ids = []
+
+        for raw_id in ids.split(","):
+            raw_id = raw_id.strip()
+
+            if raw_id.isdigit():
+                selected_ids.append(int(raw_id))
+
+        selected_categories = [
+            category
+            for category in categories
+            if category.get("id") in selected_ids
+        ]
+
+        if not selected_categories:
+            return HTMLResponse(
+                """
+                <h2>No se encontraron categorías para confirmar.</h2>
+                <p><a href="/categories-review">Volver a la revisión SEO</a></p>
+                """
+            )
+
+        confirmation_cards = ""
+
+        for category in selected_categories:
+            category_id = category.get("id")
+
+            category_name = get_translation(
+                category.get("name"),
+                "Categoría sin nombre"
+            ).strip()
+
+            seo = generate_category_seo_suggestion(category_name)
+
+            proposed_title = seo.get("title", "")
+            proposed_description = seo.get("description", "")
+
+            confirmation_cards += f"""
+            <div style="
+                background:white;
+                padding:22px;
+                margin-bottom:18px;
+                border-radius:14px;
+                box-shadow:0 4px 14px rgba(0,0,0,0.06);
+            ">
+                <h3>{html.escape(category_name)}</h3>
+
+                <p>
+                    <strong>ID categoría:</strong> {category_id}
+                </p>
+
+                <p>
+                    <strong>Título SEO que se aplicará:</strong><br>
+                    {html.escape(proposed_title)}
+                </p>
+
+                <p>
+                    <strong>Descripción SEO que se aplicará:</strong><br>
+                    {html.escape(proposed_description)}
+                </p>
+            </div>
+            """
+
+        return HTMLResponse(
+            f"""
+            <!DOCTYPE html>
+            <html lang="es">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Confirmar SEO | CUBIKA TRAFFIC BOT</title>
+            </head>
+
+            <body style="
+                font-family:Arial,sans-serif;
+                background:#f3f6fa;
+                margin:0;
+                padding:20px;
+            ">
+
+                <h1>Confirmación final de SEO</h1>
+
+                <p>
+                    Estás por preparar cambios para
+                    <strong>{len(selected_categories)} categorías</strong>.
+                </p>
+
+                {confirmation_cards}
+
+                <div style="
+                    background:white;
+                    padding:22px;
+                    border-radius:14px;
+                    margin-top:20px;
+                ">
+                    <p>
+                        <strong>Importante:</strong>
+                        esta pantalla todavía no modifica Tiendanube.
+                    </p>
+
+                    <p>
+                        En el próximo paso agregaremos la acción que
+                        aplicará estos cambios solamente después de tu confirmación.
+                    </p>
+
+                    <a href="/categories-bulk-review?ids={ids}">
+                        Volver a la revisión
+                    </a>
+                </div>
+
+            </body>
+            </html>
+            """
+        )
+
+    except Exception as e:
+        return HTMLResponse(
+            f"""
+            <h2>Error al preparar la confirmación SEO</h2>
+            <p>{html.escape(str(e))}</p>
+            <p><a href="/categories-review">Volver a la revisión SEO</a></p>
+            """,
+            status_code=500
+        )        
 @app.get("/category-confirm/{category_id}", response_class=HTMLResponse)
 async def category_confirm(category_id: int):
     try:
