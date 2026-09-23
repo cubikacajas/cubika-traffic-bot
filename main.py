@@ -398,7 +398,25 @@ async def categories_review():
                 box-shadow:0 4px 14px rgba(0,0,0,0.06);
             ">
                 <h3>{safe_name}</h3>
-
+                <label style="
+                    display:flex;
+                    align-items:center;
+                    gap:10px;
+                    margin:12px 0 18px 0;
+                    font-weight:600;
+                ">
+                    <input
+                        type="checkbox"
+                        class="seo-category-checkbox"
+                        value="{category_id}"
+                        style="
+                            width:20px;
+                            height:20px;
+                            cursor:pointer;
+                        "
+                    >
+                    Seleccionar para revisión conjunta
+                </label>
                 <p>
                     <strong>ID categoría:</strong> {category_id}
                 </p>
@@ -438,7 +456,40 @@ async def categories_review():
                 <strong>✓ Todas las categorías tienen SEO.</strong>
             </div>
             """
+        bulk_controls = """
+        <div style="
+            background:white;
+            padding:20px;
+            margin-bottom:20px;
+            border-radius:14px;
+            box-shadow:0 4px 14px rgba(0,0,0,0.06);
+        ">
+            <h3>Revisión conjunta de categorías</h3>
 
+            <p>
+                Seleccioná las categorías que quieras revisar juntas.
+                No se realizará ningún cambio automático en Tiendanube.
+            </p>
+
+            <button
+                type="button"
+                onclick="reviewSelectedCategories()"
+                style="
+                    padding:12px 18px;
+                    background:#2563eb;
+                    color:white;
+                    border:0;
+                    border-radius:8px;
+                    font-weight:600;
+                    cursor:pointer;
+                "
+            >
+                Revisar categorías seleccionadas
+            </button>
+
+            <p id="selection-message" style="margin-top:12px;"></p>
+        </div>
+        """
         return HTMLResponse(
             f"""
             <!DOCTYPE html>
@@ -478,11 +529,35 @@ async def categories_review():
                     <p>
                         <a href="/dashboard">← Volver al Dashboard</a>
                     </p>
-
+                    {bulk_controls}
                     {pending_cards}
 
                 </div>
+                <script>
+function reviewSelectedCategories() {
+    const checkboxes = document.querySelectorAll(
+        '.seo-category-checkbox:checked'
+    );
 
+    const message = document.getElementById('selection-message');
+
+    if (checkboxes.length === 0) {
+        message.textContent = 'Seleccioná al menos una categoría.';
+        return;
+    }
+
+    const ids = Array.from(checkboxes).map(
+        checkbox => checkbox.value
+    );
+
+    message.textContent =
+        'Categorías seleccionadas: ' + ids.length;
+
+    window.location.href =
+        '/categories-bulk-review?ids=' +
+        encodeURIComponent(ids.join(','));
+}
+</script>
             </body>
             </html>
             """
@@ -494,6 +569,170 @@ async def categories_review():
             <h2>Error al preparar la revisión SEO</h2>
             <p>{html.escape(str(e))}</p>
             <p><a href="/dashboard">Volver al Dashboard</a></p>
+            """,
+            status_code=500
+        )
+        @app.get("/categories-bulk-review", response_class=HTMLResponse)
+async def categories_bulk_review(ids: str = ""):
+    try:
+        categories = get_categories()
+
+        selected_ids = []
+
+        for raw_id in ids.split(","):
+            raw_id = raw_id.strip()
+
+            if raw_id.isdigit():
+                selected_ids.append(int(raw_id))
+
+        selected_categories = [
+            category
+            for category in categories
+            if category.get("id") in selected_ids
+        ]
+
+        if not selected_categories:
+            return HTMLResponse(
+                """
+                <h2>No se seleccionaron categorías válidas.</h2>
+                <p><a href="/categories-review">Volver a la revisión SEO</a></p>
+                """
+            )
+
+        review_cards = ""
+                for category in selected_categories:
+            category_id = category.get("id")
+
+            category_name = get_translation(
+                category.get("name"),
+                "Categoría sin nombre"
+            ).strip()
+
+            seo = generate_category_seo_suggestion(category_name)
+
+            current_title = get_translation(
+                category.get("seo_title"),
+                ""
+            ).strip()
+
+            current_description = get_translation(
+                category.get("seo_description"),
+                ""
+            ).strip()
+
+            proposed_title = seo.get("title", "")
+            proposed_description = seo.get("description", "")
+
+            safe_name = html.escape(category_name)
+            safe_current_title = html.escape(
+                current_title or "Sin título SEO"
+            )
+            safe_current_description = html.escape(
+                current_description or "Sin descripción SEO"
+            )
+            safe_proposed_title = html.escape(proposed_title)
+            safe_proposed_description = html.escape(
+                proposed_description
+            )
+
+            review_cards += f"""
+            <div style="
+                background:white;
+                padding:22px;
+                margin-bottom:18px;
+                border-radius:14px;
+                box-shadow:0 4px 14px rgba(0,0,0,0.06);
+            ">
+                <h3>{safe_name}</h3>
+                <p><strong>ID categoría:</strong> {category_id}</p>
+
+                <p>
+                    <strong>SEO actual</strong><br>
+                    Título: {safe_current_title}<br>
+                    Descripción: {safe_current_description}
+                </p>
+
+                <p>
+                    <strong>SEO propuesto</strong><br>
+                    Título: {safe_proposed_title}<br>
+                    Descripción: {safe_proposed_description}
+                </p>
+            </div>
+            """
+                    if not review_cards:
+            review_cards = """
+            <div style="
+                background:white;
+                padding:25px;
+                border-radius:14px;
+            ">
+                <strong>No hay categorías seleccionadas para revisar.</strong>
+            </div>
+            """
+                    return HTMLResponse(
+            f"""
+            <!DOCTYPE html>
+            <html lang="es">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Revisión conjunta SEO | CUBIKA TRAFFIC BOT</title>
+            </head>
+
+            <body style="
+                font-family:Arial,sans-serif;
+                background:#f4f7fb;
+                margin:0;
+                padding:20px;
+            ">
+                <div style="
+                    max-width:1100px;
+                    margin:auto;
+                ">
+                    <h1>Revisión conjunta de SEO</h1>
+
+                    <p>
+                        Revisá el SEO actual y el SEO propuesto de las
+                        categorías seleccionadas.
+                    </p>
+
+                    <p>
+                        <strong>Categorías seleccionadas:</strong>
+                        {len(selected_categories)}
+                    </p>
+
+                    {review_cards}
+
+                    <div style="
+                        background:white;
+                        padding:22px;
+                        margin-top:20px;
+                        border-radius:14px;
+                    ">
+                        <p>
+                            Esta pantalla es solamente de revisión.
+                            Todavía no se realizarán cambios en Tiendanube.
+                        </p>
+
+                        <a href="/categories-review">
+                            Volver a seleccionar
+                        </a>
+                    </div>
+                </div>
+            </body>
+            </html>
+            """
+        )
+            except Exception as e:
+        return HTMLResponse(
+            f"""
+            <h2>Error al preparar la revisión conjunta SEO</h2>
+            <p>{html.escape(str(e))}</p>
+            <p>
+                <a href="/categories-review">
+                    Volver a la revisión SEO
+                </a>
+            </p>
             """,
             status_code=500
         )
