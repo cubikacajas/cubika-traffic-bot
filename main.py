@@ -660,15 +660,15 @@ async def categories_bulk_review(ids: str = ""):
             </div>
             """
                     if not review_cards:
-            review_cards = """
-            <div style="
-                background:white;
-                padding:25px;
-                border-radius:14px;
-            ">
-                <strong>No hay categorías seleccionadas para revisar.</strong>
-            </div>
-            """
+                        review_cards = """
+                        <div style="
+                            background:white;
+                            padding:25px;
+                            border-radius:14px;
+                        ">
+                            <strong>No hay categorías seleccionadas para revisar.</strong>
+                        </div>
+                        """
                     return HTMLResponse(
             f"""
             <!DOCTYPE html>
