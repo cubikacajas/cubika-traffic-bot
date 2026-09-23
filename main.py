@@ -339,6 +339,164 @@ async def category_apply_test(category_id: int):
             "updated": False,
             "error": str(e),
         }
+@app.get("/categories-review", response_class=HTMLResponse)
+async def categories_review():
+    try:
+        categories = get_categories()
+
+        pending_cards = ""
+        pending_count = 0
+
+        for category in categories:
+            category_id = category.get("id")
+
+            category_name = get_translation(
+                category.get("name"),
+                ""
+            ).strip()
+
+            if not category_name:
+                category_name = get_translation(
+                    category.get("handle"),
+                    "Categoría sin nombre"
+                ).strip()
+
+            if category_name.lower() == "pastelería":
+                category_name = "PASTELERÍA"
+
+            current_title = get_translation(
+                category.get("seo_title"),
+                ""
+            ).strip()
+
+            current_description = get_translation(
+                category.get("seo_description"),
+                ""
+            ).strip()
+
+            seo = generate_category_seo_suggestion(category_name)
+
+            proposed_title = seo.get("title", "").strip()
+            proposed_description = seo.get("description", "").strip()
+
+            # Solo mostramos categorías que todavía necesitan SEO
+            if current_title and current_description:
+                continue
+
+            pending_count += 1
+
+            safe_name = html.escape(category_name)
+            safe_title = html.escape(proposed_title)
+            safe_description = html.escape(proposed_description)
+
+            pending_cards += f"""
+            <div style="
+                background:white;
+                padding:22px;
+                margin-bottom:18px;
+                border-radius:14px;
+                box-shadow:0 4px 14px rgba(0,0,0,0.06);
+            ">
+                <h3>{safe_name}</h3>
+
+                <p>
+                    <strong>ID categoría:</strong> {category_id}
+                </p>
+
+                <p>
+                    <strong>Título SEO propuesto:</strong><br>
+                    {safe_title}
+                </p>
+
+                <p>
+                    <strong>Descripción SEO propuesta:</strong><br>
+                    {safe_description}
+                </p>
+
+                <a href="/category-confirm/{category_id}"
+                   style="
+                       display:inline-block;
+                       padding:10px 16px;
+                       background:#2563eb;
+                       color:white;
+                       text-decoration:none;
+                       border-radius:8px;
+                       font-weight:600;
+                   ">
+                    Revisar individualmente
+                </a>
+            </div>
+            """
+
+        if not pending_cards:
+            pending_cards = """
+            <div style="
+                background:white;
+                padding:25px;
+                border-radius:14px;
+            ">
+                <strong>✓ Todas las categorías tienen SEO.</strong>
+            </div>
+            """
+
+        return HTMLResponse(
+            f"""
+            <!DOCTYPE html>
+            <html lang="es">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport"
+                      content="width=device-width, initial-scale=1.0">
+
+                <title>Revisión SEO | CUBIKA TRAFFIC BOT</title>
+            </head>
+
+            <body style="
+                margin:0;
+                background:#f3f6f9;
+                font-family:Arial, sans-serif;
+                color:#111827;
+            ">
+
+                <div style="
+                    max-width:1000px;
+                    margin:40px auto;
+                    padding:20px;
+                ">
+
+                    <h1>Revisión SEO de Categorías</h1>
+
+                    <p>
+                        <strong>Categorías pendientes: {pending_count}</strong>
+                    </p>
+
+                    <p>
+                        Esta pantalla es solamente de revisión.
+                        No se realizarán cambios automáticos en Tiendanube.
+                    </p>
+
+                    <p>
+                        <a href="/dashboard">← Volver al Dashboard</a>
+                    </p>
+
+                    {pending_cards}
+
+                </div>
+
+            </body>
+            </html>
+            """
+        )
+
+    except Exception as e:
+        return HTMLResponse(
+            f"""
+            <h2>Error al preparar la revisión SEO</h2>
+            <p>{html.escape(str(e))}</p>
+            <p><a href="/dashboard">Volver al Dashboard</a></p>
+            """,
+            status_code=500
+        )
 @app.get("/category-confirm/{category_id}", response_class=HTMLResponse)
 async def category_confirm(category_id: int):
     try:
