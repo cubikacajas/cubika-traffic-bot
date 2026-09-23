@@ -534,17 +534,17 @@ async def categories_review():
 
                 </div>
                 <script>
-function reviewSelectedCategories() {
+function reviewSelectedCategories() {{
     const checkboxes = document.querySelectorAll(
         '.seo-category-checkbox:checked'
     );
 
     const message = document.getElementById('selection-message');
 
-    if (checkboxes.length === 0) {
-        message.textContent = 'Seleccioná al menos una categoría.';
-        return;
-    }
+    if (checkboxes.length === 0) {{
+    message.textContent = 'Seleccioná al menos una categoría.';
+    return;
+}}
 
     const ids = Array.from(checkboxes).map(
         checkbox => checkbox.value
@@ -556,7 +556,7 @@ function reviewSelectedCategories() {
     window.location.href =
         '/categories-bulk-review?ids=' +
         encodeURIComponent(ids.join(','));
-}
+}}
 </script>
             </body>
             </html>
@@ -572,7 +572,7 @@ function reviewSelectedCategories() {
             """,
             status_code=500
         )
-        @app.get("/categories-bulk-review", response_class=HTMLResponse)
+@app.get("/categories-bulk-review", response_class=HTMLResponse)
 async def categories_bulk_review(ids: str = ""):
     try:
         categories = get_categories()
