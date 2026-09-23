@@ -704,20 +704,42 @@ async def categories_bulk_review(ids: str = ""):
                     {review_cards}
 
                     <div style="
-                        background:white;
-                        padding:22px;
-                        margin-top:20px;
-                        border-radius:14px;
-                    ">
-                        <p>
-                            Esta pantalla es solamente de revisión.
-                            Todavía no se realizarán cambios en Tiendanube.
-                        </p>
+    background:white;
+    padding:22px;
+    margin-top:20px;
+    border-radius:14px;
+">
+    <p>
+        <strong>Revisión terminada.</strong><br>
+        Verificá las propuestas anteriores antes de continuar.
+    </p>
 
-                        <a href="/categories-review">
-                            Volver a seleccionar
-                        </a>
-                    </div>
+    <form action="/categories-bulk-confirm" method="get">
+        <input type="hidden" name="ids" value="{ids}">
+
+        <button type="submit" style="
+            background:#2563eb;
+            color:white;
+            border:none;
+            padding:12px 18px;
+            border-radius:8px;
+            font-weight:bold;
+            cursor:pointer;
+            margin-right:12px;
+        ">
+            Continuar para aplicar SEO
+        </button>
+
+        <a href="/categories-review">
+            Volver a seleccionar
+        </a>
+    </form>
+
+    <p style="margin-top:15px; color:#555;">
+        Todavía no se realizará ningún cambio en Tiendanube.
+        El próximo paso pedirá confirmación antes de aplicar el SEO.
+    </p>
+</div>
                 </div>
             </body>
             </html>
