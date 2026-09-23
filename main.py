@@ -339,6 +339,203 @@ async def category_apply_test(category_id: int):
             "updated": False,
             "error": str(e),
         }
+@app.get("/category-confirm/{category_id}", response_class=HTMLResponse)
+async def category_confirm(category_id: int):
+    try:
+        categories = get_categories()
+
+        category = next(
+            (
+                item
+                for item in categories
+                if item.get("id") == category_id
+            ),
+            None,
+        )
+
+        if not category:
+            return HTMLResponse(
+                """
+                <h2>Categoría no encontrada</h2>
+                <p>No se encontró la categoría solicitada.</p>
+                <p><a href="/dashboard">Volver al dashboard</a></p>
+                """,
+                status_code=404,
+            )
+
+        category_name = get_translation(
+            category.get("name"),
+            ""
+        ).strip()
+
+        if not category_name or category_name.lower() == "categoría sin nombre":
+            category_name = get_translation(
+                category.get("handle"),
+                ""
+            ).strip()
+
+        if category_name.lower() == "pasteleria":
+            category_name = "PASTELERÍA"
+
+        if not category_name:
+            category_name = "Categoría sin nombre"
+
+        current_title = get_translation(
+            category.get("seo_title"),
+            ""
+        ).strip()
+
+        current_description = get_translation(
+            category.get("seo_description"),
+            ""
+        ).strip()
+
+        seo = generate_category_seo_suggestion(category_name)
+
+        proposed_title = seo.get("title", "").strip()
+        proposed_description = seo.get("description", "").strip()
+
+        safe_name = html.escape(category_name)
+        safe_current_title = html.escape(current_title or "Sin título SEO")
+        safe_current_description = html.escape(
+            current_description or "Sin descripción SEO"
+        )
+        safe_proposed_title = html.escape(proposed_title)
+        safe_proposed_description = html.escape(proposed_description)
+
+        return HTMLResponse(
+            f"""
+            <!DOCTYPE html>
+            <html lang="es">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Confirmar SEO | CUBIKACAJAS</title>
+
+                <style>
+                    body {{
+                        font-family: Arial, sans-serif;
+                        background:#f1f5f9;
+                        margin:0;
+                        padding:30px;
+                        color:#0f172a;
+                    }}
+
+                    .container {{
+                        max-width:850px;
+                        margin:auto;
+                    }}
+
+                    .card {{
+                        background:white;
+                        padding:25px;
+                        border-radius:14px;
+                        margin-bottom:20px;
+                        box-shadow:0 4px 15px rgba(0,0,0,0.08);
+                    }}
+
+                    .current {{
+                        border-left:5px solid #94a3b8;
+                    }}
+
+                    .proposed {{
+                        border-left:5px solid #2563eb;
+                    }}
+
+                    .button {{
+                        display:inline-block;
+                        padding:12px 18px;
+                        border-radius:8px;
+                        text-decoration:none;
+                        font-weight:600;
+                        margin-right:10px;
+                    }}
+
+                    .confirm {{
+                        background:#16a34a;
+                        color:white;
+                    }}
+
+                    .cancel {{
+                        background:#e2e8f0;
+                        color:#0f172a;
+                    }}
+                </style>
+            </head>
+
+            <body>
+                <div class="container">
+
+                    <h1>Confirmar actualización SEO</h1>
+
+                    <div class="card">
+                        <h2>{safe_name}</h2>
+                        <p><strong>ID categoría:</strong> {category_id}</p>
+                    </div>
+
+                    <div class="card current">
+                        <h3>SEO actual</h3>
+
+                        <p>
+                            <strong>Título:</strong><br>
+                            {safe_current_title}
+                        </p>
+
+                        <p>
+                            <strong>Descripción:</strong><br>
+                            {safe_current_description}
+                        </p>
+                    </div>
+
+                    <div class="card proposed">
+                        <h3>SEO propuesto por CUBIKA TRAFFIC BOT</h3>
+
+                        <p>
+                            <strong>Título:</strong><br>
+                            {safe_proposed_title}
+                        </p>
+
+                        <p>
+                            <strong>Descripción:</strong><br>
+                            {safe_proposed_description}
+                        </p>
+                    </div>
+
+                    <div class="card">
+                        <p>
+                            Revisá la información antes de realizar cambios
+                            en Tiendanube.
+                        </p>
+
+                        <a class="button confirm"
+                           href="/category-approve/{category_id}">
+                            Confirmar y aplicar SEO
+                        </a>
+
+                        <a class="button cancel"
+                           href="/dashboard">
+                            Cancelar
+                        </a>
+                    </div>
+
+                </div>
+            </body>
+            </html>
+            """
+        )
+
+    except Exception as e:
+        return HTMLResponse(
+            f"""
+            <h2>Error al preparar la confirmación</h2>
+            <p>{html.escape(str(e))}</p>
+            <p><a href="/dashboard">Volver al dashboard</a></p>
+            """,
+            status_code=500,
+        )
+
+
+    
 @app.get("/category-approve/{category_id}")
 async def category_approve(category_id: int):
     try:
@@ -1692,6 +1889,38 @@ async def dashboard():
             <p style="font-size:12px;color:#64748b;">
                 ID categoría: {category_id}
             </p>
+                    {
+            f'''
+            <a href="/category-confirm/{category_id}"
+               style="
+                   display:inline-block;
+                   margin-top:10px;
+                   padding:10px 16px;
+                   background:#2563eb;
+                   color:white;
+                   text-decoration:none;
+                   border-radius:8px;
+                   font-weight:600;
+               ">
+                Revisar y aplicar SEO
+            </a>
+            '''
+            if category_status != "CORRECTA"
+            else
+            '''
+            <span style="
+                display:inline-block;
+                margin-top:10px;
+                padding:8px 12px;
+                background:#dcfce7;
+                color:#166534;
+                border-radius:8px;
+                font-weight:600;
+            ">
+                ✓ SEO actualizado
+            </span>
+            '''
+        }
         </div>
         """
     # --------------------------------------------------------
