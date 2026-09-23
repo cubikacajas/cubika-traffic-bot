@@ -723,7 +723,7 @@ async def categories_bulk_review(ids: str = ""):
             </html>
             """
         )
-            except Exception as e:
+    except Exception as e:
         return HTMLResponse(
             f"""
             <h2>Error al preparar la revisión conjunta SEO</h2>
