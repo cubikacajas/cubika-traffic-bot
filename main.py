@@ -600,7 +600,7 @@ async def categories_bulk_review(ids: str = ""):
             )
 
         review_cards = ""
-                for category in selected_categories:
+        for category in selected_categories:
             category_id = category.get("id")
 
             category_name = get_translation(
