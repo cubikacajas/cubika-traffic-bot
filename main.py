@@ -208,6 +208,49 @@ async def tiendanube_write_permission_test():
             "write_permission": False,
             "error": str(e)
         }
+@app.get("/seo-write-check")
+async def seo_write_check():
+    try:
+        category_ids = [40097051, 40097172]
+        results = []
+
+        for category_id in category_ids:
+            request = URLRequest(
+                f"https://api.tiendanube.com/v1/{TIENDANUBE_STORE_ID}/categories/{category_id}",
+                headers={
+                    "Authentication": f"bearer {TIENDANUBE_ACCESS_TOKEN}",
+                    "User-Agent": "CUBIKA TRAFFIC BOT",
+                    "Content-Type": "application/json",
+                },
+                method="GET",
+            )
+
+            with urlopen(request, timeout=20) as response:
+                response_data = response.read().decode("utf-8")
+
+            category = json.loads(response_data)
+
+            results.append({
+                "id": category.get("id"),
+                "name": category.get("name"),
+                "seo_title": category.get("seo_title"),
+                "seo_description": category.get("seo_description"),
+                "updated_at": category.get("updated_at"),
+                "full_category_response": category
+            })
+
+        return {
+            "success": True,
+            "message": "Lectura directa de Tiendanube después de la actualización SEO.",
+            "categories": results
+        }
+
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
 
 @app.get("/categories-test")
 async def categories_test():
