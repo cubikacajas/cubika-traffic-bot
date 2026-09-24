@@ -170,6 +170,45 @@ def update_category(category_id, category_data):
         response_data = response.read().decode("utf-8")
 
     return json.loads(response_data)
+@app.get("/tiendanube-write-permission-test")
+async def tiendanube_write_permission_test():
+    try:
+        categories = get_categories()
+
+        if not categories:
+            return {
+                "success": False,
+                "error": "No se encontraron categorías."
+            }
+
+        category = categories[0]
+        category_id = category.get("id")
+
+        # Enviamos el mismo nombre que ya tiene la categoría.
+        # La prueba intenta escribir, pero no cambia el contenido.
+        current_name = category.get("name")
+
+        test_data = {
+            "name": current_name
+        }
+
+        result = update_category(category_id, test_data)
+
+        return {
+            "success": True,
+            "write_permission": True,
+            "category_id": category_id,
+            "message": "Tiendanube aceptó una actualización de categoría.",
+            "tiendanube_response": result
+        }
+
+    except Exception as e:
+        return {
+            "success": False,
+            "write_permission": False,
+            "error": str(e)
+        }
+
 @app.get("/categories-test")
 async def categories_test():
     try:
