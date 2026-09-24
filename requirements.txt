@@ -2,3 +2,4 @@ fastapi
 uvicorn[standard]
 httpx
 google-analytics-data
+python-multipart
