@@ -115,7 +115,40 @@ def get_categories():
         page += 1
 
     return all_categories
+@app.get("/tiendanube-permissions-test")
+async def tiendanube_permissions_test():
+    try:
+        if not TIENDANUBE_ACCESS_TOKEN or not TIENDANUBE_STORE_ID:
+            return {
+                "connected": False,
+                "error": "Faltan credenciales de Tiendanube."
+            }
 
+        request = URLRequest(
+            f"https://api.tiendanube.com/v1/{TIENDANUBE_STORE_ID}/store",
+            headers={
+                "Authentication": f"bearer {TIENDANUBE_ACCESS_TOKEN}",
+                "User-Agent": "CUBIKA TRAFFIC BOT",
+                "Content-Type": "application/json",
+            },
+            method="GET",
+        )
+
+        with urlopen(request, timeout=20) as response:
+            response_data = response.read().decode("utf-8")
+
+        return {
+            "connected": True,
+            "store_id": TIENDANUBE_STORE_ID,
+            "message": "Token aceptado correctamente por Tiendanube.",
+            "store_response": json.loads(response_data),
+        }
+
+    except Exception as e:
+        return {
+            "connected": False,
+            "error": str(e)
+        }
 def update_category(category_id, category_data):
     if not TIENDANUBE_ACCESS_TOKEN or not TIENDANUBE_STORE_ID:
         raise Exception("La conexión con Tiendanube no está configurada.")
