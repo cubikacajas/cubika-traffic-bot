@@ -977,6 +977,205 @@ async def products_confirm(ids: str = ""):
             status_code=500
         )
 
+@app.get("/products-apply", response_class=HTMLResponse)
+async def products_apply(ids: str = ""):
+    try:
+        if not ids:
+            return HTMLResponse(
+                content="""
+                <h1>No hay productos para actualizar</h1>
+                <p>No se recibió ningún ID de producto.</p>
+                <p>
+                    <a href="/products-review">
+                        ← Volver a la revisión SEO
+                    </a>
+                </p>
+                """,
+                status_code=400
+            )
+
+        selected_ids = []
+
+        for product_id in ids.split(","):
+            product_id = product_id.strip()
+
+            if product_id.isdigit():
+                selected_ids.append(int(product_id))
+
+        if not selected_ids:
+            return HTMLResponse(
+                content="""
+                <h1>No hay productos válidos para actualizar</h1>
+                <p>
+                    <a href="/products-review">
+                        ← Volver a la revisión SEO
+                    </a>
+                </p>
+                """,
+                status_code=400
+            )
+
+        audit = get_product_seo_audit()
+
+        selected_products = [
+            product
+            for product in audit
+            if product["id"] in selected_ids
+        ]
+
+        results = []
+
+        for product in selected_products:
+            suggestion = generate_product_seo_suggestion(
+                product["product"]
+            )
+
+            update_data = {
+                "seo_title": {
+                    "es": suggestion["seo_title"]
+                },
+                "seo_description": {
+                    "es": suggestion["seo_description"]
+                }
+            }
+
+            try:
+                response = update_product(
+                    product["id"],
+                    update_data
+                )
+
+                results.append({
+                    "product": product["product"],
+                    "id": product["id"],
+                    "success": True,
+                    "seo_title": suggestion["seo_title"],
+                    "seo_description": suggestion["seo_description"],
+                    "response": response,
+                })
+
+            except Exception as product_error:
+                results.append({
+                    "product": product["product"],
+                    "id": product["id"],
+                    "success": False,
+                    "error": str(product_error),
+                })
+
+        updated_count = sum(
+            1 for result in results
+            if result["success"]
+        )
+
+        error_count = len(results) - updated_count
+
+        result_cards = ""
+
+        for result in results:
+            if result["success"]:
+                result_cards += f"""
+                <div style="
+                    border:1px solid #ddd;
+                    border-radius:10px;
+                    padding:18px;
+                    margin-bottom:18px;
+                    background:#fff;
+                ">
+                    <h3>{result["product"]}</h3>
+
+                    <p>
+                        <strong>✓ SEO actualizado correctamente</strong>
+                    </p>
+
+                    <p>
+                        <strong>Título:</strong><br>
+                        {result["seo_title"]}
+                    </p>
+
+                    <p>
+                        <strong>Descripción:</strong><br>
+                        {result["seo_description"]}
+                    </p>
+                </div>
+                """
+            else:
+                result_cards += f"""
+                <div style="
+                    border:1px solid #ddd;
+                    border-radius:10px;
+                    padding:18px;
+                    margin-bottom:18px;
+                    background:#fff;
+                ">
+                    <h3>{result["product"]}</h3>
+
+                    <p>
+                        <strong>Error al actualizar:</strong><br>
+                        {result["error"]}
+                    </p>
+                </div>
+                """
+
+        html = f"""
+        <!DOCTYPE html>
+        <html lang="es">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport"
+                  content="width=device-width, initial-scale=1.0">
+
+            <title>Resultado SEO de Productos</title>
+        </head>
+
+        <body style="
+            font-family:Arial, sans-serif;
+            max-width:1000px;
+            margin:40px auto;
+            padding:0 20px;
+            background:#f7f7f7;
+            color:#222;
+        ">
+
+            <h1>Resultado de actualización SEO de Productos</h1>
+
+            <p>
+                <strong>Productos actualizados:</strong>
+                {updated_count}
+            </p>
+
+            <p>
+                <strong>Errores:</strong>
+                {error_count}
+            </p>
+
+            {result_cards}
+
+            <p>
+                <a href="/products-review">
+                    ← Volver a la revisión SEO de productos
+                </a>
+            </p>
+
+        </body>
+        </html>
+        """
+
+        return HTMLResponse(content=html)
+
+    except Exception as e:
+        return HTMLResponse(
+            content=f"""
+            <h1>Error al aplicar SEO de productos</h1>
+            <p>{str(e)}</p>
+            <p>
+                <a href="/products-review">
+                    ← Volver a la revisión SEO
+                </a>
+            </p>
+            """,
+            status_code=500
+        )
+
 
 def get_categories():
     if not TIENDANUBE_ACCESS_TOKEN or not TIENDANUBE_STORE_ID:
@@ -1070,6 +1269,31 @@ def update_category(category_id, category_data):
         response_data = response.read().decode("utf-8")
 
     return json.loads(response_data)
+
+
+def update_product(product_id, product_data):
+    if not TIENDANUBE_ACCESS_TOKEN or not TIENDANUBE_STORE_ID:
+        raise Exception("La conexión con Tiendanube no está configurada.")
+
+    data = json.dumps(product_data).encode("utf-8")
+
+    request = URLRequest(
+        f"https://api.tiendanube.com/v1/{TIENDANUBE_STORE_ID}/products/{product_id}",
+        data=data,
+        headers={
+            "Authorization": f"Bearer {TIENDANUBE_ACCESS_TOKEN}",
+            "User-Agent": "CUBIKA TRAFFIC BOT",
+            "Content-Type": "application/json",
+        },
+        method="PUT",
+    )
+
+    with urlopen(request, timeout=20) as response:
+        response_data = response.read().decode("utf-8")
+
+    return json.loads(response_data)
+
+
 @app.get("/tiendanube-write-permission-test")
 async def tiendanube_write_permission_test():
     try:
