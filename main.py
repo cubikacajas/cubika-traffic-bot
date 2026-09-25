@@ -918,37 +918,34 @@ async def products_confirm(ids: str = ""):
             ">
 
                 <p>
-                    <strong>Importante:</strong>
-                    esta pantalla todavía no modifica Tiendanube.
-                </p>
+    <strong>Importante:</strong>
+    esta es la confirmación final antes de modificar Tiendanube.
+</p>
 
-                <p>
-                    El próximo paso será agregar la acción que
-                    aplicará estos cambios únicamente después
-                    de tu confirmación.
-                </p>
+<p>
+    Los cambios se aplicarán únicamente después
+    de presionar el botón de confirmación.
+</p>
 
-                <p>
-                    <strong>
-                        Por ahora este botón todavía no está habilitado
-                        para modificar productos.
-                    </strong>
-                </p>
+<p>
+    <strong>
+        Al presionar el botón se aplicará el SEO
+        solamente a los productos indicados arriba.
+    </strong>
+</p>
 
-                <a href="/products-apply?ids={ids_for_apply}"
-                   style="
-                       display:inline-block;
-                       padding:12px 18px;
-                       background:#ccc;
-                       color:#555;
-                       text-decoration:none;
-                       border-radius:6px;
-                       pointer-events:none;
-                       cursor:not-allowed;
-                   ">
-                    Confirmar y aplicar SEO a {len(selected_products)} productos
-                </a>
-
+<a href="/products-apply?ids={ids_for_apply}"
+   style="
+       display:inline-block;
+       padding:12px 18px;
+       background:#16a34a;
+       color:white;
+       text-decoration:none;
+       border-radius:6px;
+       cursor:pointer;
+   ">
+    Confirmar y aplicar SEO a {len(selected_products)} productos
+</a>
             </div>
 
             <p style="margin-top:20px;">
