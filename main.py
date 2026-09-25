@@ -425,6 +425,181 @@ async def products_seo_suggestions():
             "success": False,
             "error": str(e)
         }
+@app.get("/products-review", response_class=HTMLResponse)
+async def products_review():
+    try:
+        audit = get_product_seo_audit()
+
+        product_cards = ""
+
+        for product in audit:
+            suggestion = generate_product_seo_suggestion(
+                product["product"]
+            )
+
+            product_id = product["id"]
+            product_name = product["product"]
+
+            current_title = (
+                product["seo_title"]
+                or "Sin título SEO"
+            )
+
+            current_description = (
+                product["seo_description"]
+                or "Sin descripción SEO"
+            )
+
+            proposed_title = suggestion["seo_title"]
+            proposed_description = suggestion["seo_description"]
+
+            product_cards += f"""
+            <div style="
+                border:1px solid #ddd;
+                border-radius:10px;
+                padding:18px;
+                margin-bottom:18px;
+                background:#fff;
+            ">
+                <label style="
+                    display:block;
+                    margin-bottom:12px;
+                    font-weight:bold;
+                ">
+                    <input
+                        type="checkbox"
+                        name="product_ids"
+                        value="{product_id}"
+                        style="margin-right:8px;"
+                    >
+                    Seleccionar para revisión conjunta
+                </label>
+
+                <h3>{product_name}</h3>
+
+                <p>
+                    <strong>ID producto:</strong>
+                    {product_id}
+                </p>
+
+                <p>
+                    <strong>Título SEO actual:</strong><br>
+                    {current_title}
+                </p>
+
+                <p>
+                    <strong>Descripción SEO actual:</strong><br>
+                    {current_description}
+                </p>
+
+                <hr>
+
+                <p>
+                    <strong>Título SEO propuesto:</strong><br>
+                    {proposed_title}
+                </p>
+
+                <p>
+                    <strong>Descripción SEO propuesta:</strong><br>
+                    {proposed_description}
+                </p>
+            </div>
+            """
+
+        html = f"""
+        <!DOCTYPE html>
+        <html lang="es">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport"
+                  content="width=device-width, initial-scale=1.0">
+
+            <title>Revisión SEO de Productos</title>
+        </head>
+
+        <body style="
+            font-family:Arial, sans-serif;
+            max-width:1000px;
+            margin:40px auto;
+            padding:0 20px;
+            background:#f7f7f7;
+            color:#222;
+        ">
+
+            <h1>Revisión SEO de Productos</h1>
+
+            <p>
+                <strong>Productos encontrados: {len(audit)}</strong>
+            </p>
+
+            <p>
+                Esta pantalla es solamente de revisión.
+                No se realizará ningún cambio automático
+                en Tiendanube.
+            </p>
+
+            <p>
+                Seleccioná los productos que quieras revisar
+                conjuntamente antes de aplicar cualquier cambio.
+            </p>
+
+            <form
+                method="get"
+                action="/products-bulk-review"
+            >
+
+                <button
+                    type="submit"
+                    style="
+                        padding:12px 20px;
+                        font-size:16px;
+                        font-weight:bold;
+                        cursor:pointer;
+                        margin-bottom:25px;
+                    "
+                >
+                    Revisar productos seleccionados
+                </button>
+
+                {product_cards}
+
+                <button
+                    type="submit"
+                    style="
+                        padding:12px 20px;
+                        font-size:16px;
+                        font-weight:bold;
+                        cursor:pointer;
+                        margin-top:10px;
+                        margin-bottom:30px;
+                    "
+                >
+                    Revisar productos seleccionados
+                </button>
+
+            </form>
+
+            <p>
+                <a href="/dashboard">
+                    ← Volver al Dashboard
+                </a>
+            </p>
+
+        </body>
+        </html>
+        """
+
+        return HTMLResponse(content=html)
+
+    except Exception as e:
+        return HTMLResponse(
+            content=f"""
+            <h1>Error en revisión SEO de productos</h1>
+            <p>{str(e)}</p>
+            """,
+            status_code=500
+        )
+
 def get_categories():
     if not TIENDANUBE_ACCESS_TOKEN or not TIENDANUBE_STORE_ID:
         return []
