@@ -157,8 +157,8 @@ def generate_product_seo_suggestion(product_name):
     name = (product_name or "").strip()
     lower_name = name.lower()
 
-    # Quitamos del título SEO expresiones comerciales que aportan poco
-    # a la búsqueda, pero NO modificamos el nombre real del producto.
+    # Limpiamos solamente el texto usado para SEO.
+    # NO modifica el nombre real del producto en Tiendanube.
     clean_name = name
 
     replacements = [
@@ -171,109 +171,218 @@ def generate_product_seo_suggestion(product_name):
         clean_name = clean_name.replace(text, "")
 
     clean_name = clean_name.strip()
+    clean_lower = clean_name.lower()
 
-    # Propuestas específicas según el tipo de producto
+    # Si el nombre contiene "Medidas:", evitamos llevar toda
+    # la medida al título SEO.
+    title_name = clean_name
+    if "medidas:" in clean_lower:
+        title_name = clean_name[:clean_lower.index("medidas:")].strip()
+
+    # ---------------------------------------------------------
+    # BOMBONES
+    # ---------------------------------------------------------
     if "bombon" in lower_name:
-        if "visor" in lower_name:
-            seo_title = f"{clean_name} para Bombones | CUBIKACAJAS"
+        seo_title = f"{title_name} | CUBIKACAJAS"
+
+        if "visor" in lower_name and "sin visor" not in lower_name:
             seo_description = (
-                f"{clean_name}, ideal para presentar y proteger bombones. "
-                "Packaging de cartulina para chocolaterías, pastelerías y emprendimientos en CUBIKACAJAS."
+                f"{clean_name}, caja de cartulina con visor para presentar "
+                "bombones y chocolates. Ideal para chocolaterías, pastelerías "
+                "y emprendimientos."
             )
         else:
-            seo_title = f"{clean_name} | CUBIKACAJAS"
             seo_description = (
-                f"{clean_name} para presentación de bombones y chocolates. "
-                "Packaging de cartulina para chocolaterías, regalos y emprendimientos en CUBIKACAJAS."
+                f"{clean_name}, caja de cartulina para presentar bombones "
+                "y chocolates. Ideal para chocolaterías, regalos "
+                "y emprendimientos."
             )
 
+    # ---------------------------------------------------------
+    # CUPCAKES / MUFFINS
+    # ---------------------------------------------------------
     elif "muffin" in lower_name or "cupcake" in lower_name:
         seo_title = "Caja para Cupcakes y Muffins | CUBIKACAJAS"
         seo_description = (
-            "Caja de cartulina para cupcakes y muffins, ideal para pastelerías y emprendimientos. "
-            "Packaging práctico para presentación y traslado en CUBIKACAJAS."
+            "Caja de cartulina para cupcakes y muffins, ideal para "
+            "pastelerías y emprendimientos. Packaging práctico para "
+            "presentación y traslado."
         )
 
+    # ---------------------------------------------------------
+    # MINI TORTAS
+    # ---------------------------------------------------------
     elif "mini torta" in lower_name or "minitorta" in lower_name:
-        seo_title = f"{clean_name} | CUBIKACAJAS"
+        seo_title = f"{title_name} | CUBIKACAJAS"
         seo_description = (
-            f"{clean_name}, ideal para presentación y traslado de mini tortas. "
-            "Packaging de cartulina para pastelerías y emprendimientos en CUBIKACAJAS."
+            f"{clean_name}, caja de cartulina para presentación y traslado "
+            "de mini tortas. Ideal para pastelerías y emprendimientos."
         )
 
+    # ---------------------------------------------------------
+    # TORTAS
+    # ---------------------------------------------------------
     elif "torta" in lower_name:
-        seo_title = f"{clean_name} | CUBIKACAJAS"
+        seo_title = f"{title_name} | CUBIKACAJAS"
         seo_description = (
-            f"{clean_name} para presentación y traslado de tortas. "
-            "Packaging de cartulina para pastelerías y emprendimientos en CUBIKACAJAS."
+            f"{clean_name}, packaging de cartulina para presentación "
+            "y traslado de tortas. Ideal para pastelerías y emprendimientos."
         )
 
+    # ---------------------------------------------------------
+    # COOKIES
+    # ---------------------------------------------------------
     elif "cookie" in lower_name:
-        seo_title = f"{clean_name} para Cookies | CUBIKACAJAS"
+        seo_title = f"{title_name} | CUBIKACAJAS"
         seo_description = (
-            f"{clean_name}, ideal para presentar cookies y productos de pastelería. "
-            "Packaging de cartulina para emprendimientos en CUBIKACAJAS."
+            f"{clean_name}, caja de cartulina para presentar cookies "
+            "y productos de pastelería. Ideal para emprendimientos."
         )
 
+    # ---------------------------------------------------------
+    # MACARONS
+    # ---------------------------------------------------------
     elif "macaron" in lower_name:
-        seo_title = f"{clean_name} | CUBIKACAJAS"
+        seo_title = f"{title_name} | CUBIKACAJAS"
         seo_description = (
-            f"{clean_name} para presentación de macarons y productos de pastelería. "
-            "Packaging de cartulina para emprendimientos en CUBIKACAJAS."
+            f"{clean_name}, caja para presentación de macarons y productos "
+            "de pastelería. Packaging para pastelerías y emprendimientos."
         )
 
+    # ---------------------------------------------------------
+    # BUDINES
+    # ---------------------------------------------------------
     elif "budín" in lower_name or "budin" in lower_name:
-        seo_title = f"{clean_name} para Budines | CUBIKACAJAS"
+        seo_title = f"{title_name} | CUBIKACAJAS"
         seo_description = (
-            f"{clean_name}, ideal para presentación y traslado de budines. "
-            "Packaging de cartulina para pastelerías y emprendimientos en CUBIKACAJAS."
+            f"{clean_name}, caja de cartulina para presentación y traslado "
+            "de budines. Ideal para pastelerías y emprendimientos."
         )
 
+    # ---------------------------------------------------------
+    # DESAYUNOS
+    # ---------------------------------------------------------
     elif "desayuno" in lower_name:
-        seo_title = f"{clean_name} para Desayunos | CUBIKACAJAS"
+        seo_title = f"{title_name} | CUBIKACAJAS"
         seo_description = (
-            f"{clean_name}, ideal para desayunos, regalos y presentaciones especiales. "
-            "Packaging de cartulina disponible en CUBIKACAJAS."
+            f"{clean_name}, caja de cartulina ideal para desayunos, regalos "
+            "y presentaciones especiales. Packaging para emprendimientos."
         )
 
+    # ---------------------------------------------------------
+    # VINO
+    # ---------------------------------------------------------
     elif "vino" in lower_name:
-        seo_title = f"{clean_name} para Vino | CUBIKACAJAS"
+        seo_title = f"{title_name} | CUBIKACAJAS"
         seo_description = (
-            f"{clean_name} para presentación y regalo de botellas de vino. "
-            "Packaging de cartulina para comercios y emprendimientos en CUBIKACAJAS."
+            f"{clean_name}, estuche de cartulina para presentación y regalo "
+            "de botellas de vino. Packaging para comercios y emprendimientos."
         )
 
+    # ---------------------------------------------------------
+    # POCHOCLOS
+    # ---------------------------------------------------------
     elif "pochoc" in lower_name:
-        seo_title = f"{clean_name} | CUBIKACAJAS"
+        seo_title = f"{title_name} | CUBIKACAJAS"
         seo_description = (
-            f"{clean_name} de cartulina para pochoclos, eventos, cumpleaños y celebraciones. "
-            "Encontrá packaging para fiestas en CUBIKACAJAS."
+            f"{clean_name} de cartulina para pochoclos, cumpleaños, eventos "
+            "y celebraciones. Packaging práctico para fiestas."
         )
 
+    # ---------------------------------------------------------
+    # PORTA FLORES / CANASTAS PARA FLORES
+    # ---------------------------------------------------------
     elif "flores" in lower_name:
-        seo_title = f"{clean_name} para Flores | CUBIKACAJAS"
+        seo_title = f"{title_name} | CUBIKACAJAS"
         seo_description = (
             f"{clean_name} para presentación de flores y arreglos. "
-            "Packaging de cartulina para florerías, regalos y emprendimientos en CUBIKACAJAS."
+            "Packaging de cartulina para florerías, regalos y emprendimientos."
         )
 
-    elif "navid" in lower_name or "fiestas" in lower_name or "adviento" in lower_name:
-        seo_title = f"{clean_name} | CUBIKACAJAS"
+    # ---------------------------------------------------------
+    # TAGS
+    # ---------------------------------------------------------
+    elif "tag" in lower_name:
+        seo_title = f"{title_name} | CUBIKACAJAS"
         seo_description = (
-            f"{clean_name}, packaging de cartulina para regalos y presentaciones de Navidad. "
-            "Encontrá opciones para las fiestas en CUBIKACAJAS."
+            f"{clean_name}, tags decorativos para complementar regalos, "
+            "cajas y presentaciones. Ideales para comercios y emprendimientos."
         )
 
+    # ---------------------------------------------------------
+    # DÍA DE LA MADRE
+    # ---------------------------------------------------------
+    elif "madre" in lower_name:
+        seo_title = f"{title_name} | CUBIKACAJAS"
+        seo_description = (
+            f"{clean_name}, cajas de cartulina para regalos y presentaciones "
+            "especiales del Día de la Madre. Packaging para emprendimientos."
+        )
+
+    # ---------------------------------------------------------
+    # DÍA DEL PADRE
+    # ---------------------------------------------------------
+    elif "papá" in lower_name or "papa" in lower_name:
+        seo_title = f"{title_name} | CUBIKACAJAS"
+        seo_description = (
+            f"{clean_name}, cajas de cartulina para regalos y presentaciones "
+            "especiales del Día del Padre. Packaging para emprendimientos."
+        )
+
+    # ---------------------------------------------------------
+    # DÍA DEL NIÑO
+    # ---------------------------------------------------------
+    elif "niño" in lower_name or "nino" in lower_name:
+        seo_title = f"{title_name} | CUBIKACAJAS"
+        seo_description = (
+            f"{clean_name}, cajas de cartulina para regalos y presentaciones "
+            "del Día del Niño. Packaging para comercios y emprendimientos."
+        )
+
+    # ---------------------------------------------------------
+    # PASCUAS
+    # ---------------------------------------------------------
+    elif "pascua" in lower_name:
+        seo_title = f"{title_name} | CUBIKACAJAS"
+        seo_description = (
+            f"{clean_name}, cajas de cartulina para chocolates, regalos "
+            "y presentaciones de Pascuas. Packaging para emprendimientos."
+        )
+
+    # ---------------------------------------------------------
+    # NAVIDAD / FIESTAS / ADVIENTO
+    # ---------------------------------------------------------
+    elif (
+        "navid" in lower_name
+        or "fiestas" in lower_name
+        or "adviento" in lower_name
+    ):
+        seo_title = f"{title_name} | CUBIKACAJAS"
+        seo_description = (
+            f"{clean_name}, packaging de cartulina para regalos "
+            "y presentaciones de Navidad y fin de año."
+        )
+
+    # ---------------------------------------------------------
+    # CAJAS / PRODUCTOS GENERALES
+    # ---------------------------------------------------------
     else:
-        seo_title = f"{clean_name} | CUBIKACAJAS"
+        seo_title = f"{title_name} | CUBIKACAJAS"
         seo_description = (
-            f"{clean_name} de cartulina para presentación, regalos y distintos usos. "
-            "Packaging para comercios y emprendimientos disponible en CUBIKACAJAS."
+            f"{clean_name} de cartulina para presentación, regalos "
+            "y distintos usos. Packaging para comercios y emprendimientos."
         )
 
-    # Evitamos títulos excesivamente largos.
+    # Seguridad para títulos demasiado largos.
+    # Intentamos recortar por palabras, no en medio de una palabra.
     if len(seo_title) > 65:
-        seo_title = f"{clean_name[:48].rstrip()} | CUBIKACAJAS"
+        max_name_length = 48
+        short_name = title_name[:max_name_length].rstrip()
+
+        if " " in short_name:
+            short_name = short_name.rsplit(" ", 1)[0]
+
+        seo_title = f"{short_name} | CUBIKACAJAS"
 
     return {
         "seo_title": seo_title,
