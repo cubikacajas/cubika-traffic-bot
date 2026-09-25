@@ -153,6 +153,169 @@ async def products_seo_audit():
             "success": False,
             "error": str(e)
         }
+def generate_product_seo_suggestion(product_name):
+    name = (product_name or "").strip()
+    lower_name = name.lower()
+
+    # Quitamos del título SEO expresiones comerciales que aportan poco
+    # a la búsqueda, pero NO modificamos el nombre real del producto.
+    clean_name = name
+
+    replacements = [
+        " x 10 unidades",
+        " x 10 unidade",
+        " x 1 unidad",
+    ]
+
+    for text in replacements:
+        clean_name = clean_name.replace(text, "")
+
+    clean_name = clean_name.strip()
+
+    # Propuestas específicas según el tipo de producto
+    if "bombon" in lower_name:
+        if "visor" in lower_name:
+            seo_title = f"{clean_name} para Bombones | CUBIKACAJAS"
+            seo_description = (
+                f"{clean_name}, ideal para presentar y proteger bombones. "
+                "Packaging de cartulina para chocolaterías, pastelerías y emprendimientos en CUBIKACAJAS."
+            )
+        else:
+            seo_title = f"{clean_name} | CUBIKACAJAS"
+            seo_description = (
+                f"{clean_name} para presentación de bombones y chocolates. "
+                "Packaging de cartulina para chocolaterías, regalos y emprendimientos en CUBIKACAJAS."
+            )
+
+    elif "muffin" in lower_name or "cupcake" in lower_name:
+        seo_title = "Caja para Cupcakes y Muffins | CUBIKACAJAS"
+        seo_description = (
+            "Caja de cartulina para cupcakes y muffins, ideal para pastelerías y emprendimientos. "
+            "Packaging práctico para presentación y traslado en CUBIKACAJAS."
+        )
+
+    elif "mini torta" in lower_name or "minitorta" in lower_name:
+        seo_title = f"{clean_name} | CUBIKACAJAS"
+        seo_description = (
+            f"{clean_name}, ideal para presentación y traslado de mini tortas. "
+            "Packaging de cartulina para pastelerías y emprendimientos en CUBIKACAJAS."
+        )
+
+    elif "torta" in lower_name:
+        seo_title = f"{clean_name} | CUBIKACAJAS"
+        seo_description = (
+            f"{clean_name} para presentación y traslado de tortas. "
+            "Packaging de cartulina para pastelerías y emprendimientos en CUBIKACAJAS."
+        )
+
+    elif "cookie" in lower_name:
+        seo_title = f"{clean_name} para Cookies | CUBIKACAJAS"
+        seo_description = (
+            f"{clean_name}, ideal para presentar cookies y productos de pastelería. "
+            "Packaging de cartulina para emprendimientos en CUBIKACAJAS."
+        )
+
+    elif "macaron" in lower_name:
+        seo_title = f"{clean_name} | CUBIKACAJAS"
+        seo_description = (
+            f"{clean_name} para presentación de macarons y productos de pastelería. "
+            "Packaging de cartulina para emprendimientos en CUBIKACAJAS."
+        )
+
+    elif "budín" in lower_name or "budin" in lower_name:
+        seo_title = f"{clean_name} para Budines | CUBIKACAJAS"
+        seo_description = (
+            f"{clean_name}, ideal para presentación y traslado de budines. "
+            "Packaging de cartulina para pastelerías y emprendimientos en CUBIKACAJAS."
+        )
+
+    elif "desayuno" in lower_name:
+        seo_title = f"{clean_name} para Desayunos | CUBIKACAJAS"
+        seo_description = (
+            f"{clean_name}, ideal para desayunos, regalos y presentaciones especiales. "
+            "Packaging de cartulina disponible en CUBIKACAJAS."
+        )
+
+    elif "vino" in lower_name:
+        seo_title = f"{clean_name} para Vino | CUBIKACAJAS"
+        seo_description = (
+            f"{clean_name} para presentación y regalo de botellas de vino. "
+            "Packaging de cartulina para comercios y emprendimientos en CUBIKACAJAS."
+        )
+
+    elif "pochoc" in lower_name:
+        seo_title = f"{clean_name} | CUBIKACAJAS"
+        seo_description = (
+            f"{clean_name} de cartulina para pochoclos, eventos, cumpleaños y celebraciones. "
+            "Encontrá packaging para fiestas en CUBIKACAJAS."
+        )
+
+    elif "flores" in lower_name:
+        seo_title = f"{clean_name} para Flores | CUBIKACAJAS"
+        seo_description = (
+            f"{clean_name} para presentación de flores y arreglos. "
+            "Packaging de cartulina para florerías, regalos y emprendimientos en CUBIKACAJAS."
+        )
+
+    elif "navid" in lower_name or "fiestas" in lower_name or "adviento" in lower_name:
+        seo_title = f"{clean_name} | CUBIKACAJAS"
+        seo_description = (
+            f"{clean_name}, packaging de cartulina para regalos y presentaciones de Navidad. "
+            "Encontrá opciones para las fiestas en CUBIKACAJAS."
+        )
+
+    else:
+        seo_title = f"{clean_name} | CUBIKACAJAS"
+        seo_description = (
+            f"{clean_name} de cartulina para presentación, regalos y distintos usos. "
+            "Packaging para comercios y emprendimientos disponible en CUBIKACAJAS."
+        )
+
+    # Evitamos títulos excesivamente largos.
+    if len(seo_title) > 65:
+        seo_title = f"{clean_name[:48].rstrip()} | CUBIKACAJAS"
+
+    return {
+        "seo_title": seo_title,
+        "seo_description": seo_description,
+    }
+
+
+@app.get("/products-seo-suggestions")
+async def products_seo_suggestions():
+    try:
+        audit = get_product_seo_audit()
+        results = []
+
+        for product in audit:
+            suggestion = generate_product_seo_suggestion(
+                product["product"]
+            )
+
+            results.append({
+                "id": product["id"],
+                "product": product["product"],
+                "current_seo_title": product["seo_title"],
+                "current_seo_description": product["seo_description"],
+                "proposed_seo_title": suggestion["seo_title"],
+                "proposed_seo_description": suggestion["seo_description"],
+            })
+
+        return {
+            "success": True,
+            "message": (
+                "Propuestas SEO generadas. "
+                "No se realizaron cambios en Tiendanube."
+            ),
+            "total_products": len(results),
+            "products": results,
+        }
+
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e)
+        }
 def get_categories():
     if not TIENDANUBE_ACCESS_TOKEN or not TIENDANUBE_STORE_ID:
         return []
