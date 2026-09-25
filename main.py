@@ -774,6 +774,209 @@ async def products_bulk_review(request: Request):
             status_code=500
         )
 
+@app.get("/products-confirm", response_class=HTMLResponse)
+async def products_confirm(ids: str = ""):
+    try:
+        if not ids:
+            return HTMLResponse(
+                content="""
+                <!DOCTYPE html>
+                <html lang="es">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>Confirmación SEO de Productos</title>
+                </head>
+                <body style="
+                    font-family:Arial, sans-serif;
+                    max-width:900px;
+                    margin:40px auto;
+                    padding:0 20px;
+                ">
+                    <h1>No hay productos para confirmar</h1>
+
+                    <p>
+                        Volvé a la revisión SEO y seleccioná
+                        al menos un producto.
+                    </p>
+
+                    <p>
+                        <a href="/products-review">
+                            ← Volver a la revisión SEO de productos
+                        </a>
+                    </p>
+                </body>
+                </html>
+                """
+            )
+
+        selected_ids = []
+
+        for product_id in ids.split(","):
+            product_id = product_id.strip()
+
+            if product_id.isdigit():
+                selected_ids.append(int(product_id))
+
+        audit = get_product_seo_audit()
+
+        selected_products = [
+            product
+            for product in audit
+            if product["id"] in selected_ids
+        ]
+
+        if not selected_products:
+            return HTMLResponse(
+                content="""
+                <h1>No se encontraron productos</h1>
+                <p>
+                    No fue posible encontrar los productos
+                    seleccionados.
+                </p>
+                <p>
+                    <a href="/products-review">
+                        ← Volver a la revisión SEO
+                    </a>
+                </p>
+                """
+            )
+
+        product_cards = ""
+
+        for product in selected_products:
+            suggestion = generate_product_seo_suggestion(
+                product["product"]
+            )
+
+            product_cards += f"""
+            <div style="
+                border:1px solid #ddd;
+                border-radius:12px;
+                padding:20px;
+                margin-bottom:18px;
+                background:#fff;
+            ">
+                <h3>{product["product"]}</h3>
+
+                <p>
+                    <strong>ID producto:</strong>
+                    {product["id"]}
+                </p>
+
+                <p>
+                    <strong>Título SEO que se aplicará:</strong><br>
+                    {suggestion["seo_title"]}
+                </p>
+
+                <p>
+                    <strong>Descripción SEO que se aplicará:</strong><br>
+                    {suggestion["seo_description"]}
+                </p>
+            </div>
+            """
+
+        ids_for_apply = ",".join(
+            str(product["id"])
+            for product in selected_products
+        )
+
+        html = f"""
+        <!DOCTYPE html>
+        <html lang="es">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport"
+                  content="width=device-width, initial-scale=1.0">
+
+            <title>Confirmación final SEO de Productos</title>
+        </head>
+
+        <body style="
+            font-family:Arial, sans-serif;
+            max-width:1000px;
+            margin:40px auto;
+            padding:0 20px;
+            background:#f7f7f7;
+            color:#222;
+        ">
+
+            <h1>Confirmación final de SEO de Productos</h1>
+
+            <p>
+                Estás preparando cambios para
+                <strong>{len(selected_products)} productos</strong>.
+            </p>
+
+            {product_cards}
+
+            <div style="
+                border:1px solid #ddd;
+                border-radius:12px;
+                padding:20px;
+                margin-top:20px;
+                background:#fff;
+            ">
+
+                <p>
+                    <strong>Importante:</strong>
+                    esta pantalla todavía no modifica Tiendanube.
+                </p>
+
+                <p>
+                    El próximo paso será agregar la acción que
+                    aplicará estos cambios únicamente después
+                    de tu confirmación.
+                </p>
+
+                <p>
+                    <strong>
+                        Por ahora este botón todavía no está habilitado
+                        para modificar productos.
+                    </strong>
+                </p>
+
+                <a href="/products-apply?ids={ids_for_apply}"
+                   style="
+                       display:inline-block;
+                       padding:12px 18px;
+                       background:#ccc;
+                       color:#555;
+                       text-decoration:none;
+                       border-radius:6px;
+                       pointer-events:none;
+                       cursor:not-allowed;
+                   ">
+                    Confirmar y aplicar SEO a {len(selected_products)} productos
+                </a>
+
+            </div>
+
+            <p style="margin-top:20px;">
+                <a href="/products-review">
+                    ← Volver a la revisión SEO de productos
+                </a>
+            </p>
+
+        </body>
+        </html>
+        """
+
+        return HTMLResponse(content=html)
+
+    except Exception as e:
+        return HTMLResponse(
+            content=f"""
+            <h1>Error en confirmación SEO de productos</h1>
+            <p>{str(e)}</p>
+            <p>
+                <a href="/products-review">
+                    Volver a la revisión
+                </a>
+            </p>
+            """,
+            status_code=500
+        )
+
 
 def get_categories():
     if not TIENDANUBE_ACCESS_TOKEN or not TIENDANUBE_STORE_ID:
