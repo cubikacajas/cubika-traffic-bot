@@ -600,6 +600,181 @@ async def products_review():
             status_code=500
         )
 
+
+@app.get("/products-bulk-review", response_class=HTMLResponse)
+async def products_bulk_review(request: Request):
+    try:
+        selected_ids = request.query_params.getlist("product_ids")
+
+        if not selected_ids:
+            return HTMLResponse(
+                content="""
+                <!DOCTYPE html>
+                <html lang="es">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport"
+                          content="width=device-width, initial-scale=1.0">
+                    <title>Revisión SEO de Productos</title>
+                </head>
+                <body style="
+                    font-family:Arial, sans-serif;
+                    max-width:900px;
+                    margin:40px auto;
+                    padding:0 20px;
+                ">
+                    <h1>No seleccionaste productos</h1>
+
+                    <p>
+                        Volvé a la revisión SEO y seleccioná al menos
+                        un producto.
+                    </p>
+
+                    <p>
+                        <a href="/products-review">
+                            ← Volver a la revisión SEO de productos
+                        </a>
+                    </p>
+                </body>
+                </html>
+                """
+            )
+
+        selected_ids = [
+            int(product_id)
+            for product_id in selected_ids
+            if product_id.isdigit()
+        ]
+
+        audit = get_product_seo_audit()
+
+        selected_products = [
+            product
+            for product in audit
+            if product["id"] in selected_ids
+        ]
+
+        product_cards = ""
+
+        for product in selected_products:
+            suggestion = generate_product_seo_suggestion(
+                product["product"]
+            )
+
+            product_cards += f"""
+            <div style="
+                border:1px solid #ddd;
+                border-radius:10px;
+                padding:18px;
+                margin-bottom:18px;
+                background:#fff;
+            ">
+                <h3>{product["product"]}</h3>
+
+                <p>
+                    <strong>ID producto:</strong>
+                    {product["id"]}
+                </p>
+
+                <p>
+                    <strong>Título SEO que se aplicaría:</strong><br>
+                    {suggestion["seo_title"]}
+                </p>
+
+                <p>
+                    <strong>Descripción SEO que se aplicaría:</strong><br>
+                    {suggestion["seo_description"]}
+                </p>
+            </div>
+            """
+
+        ids_for_next_step = ",".join(
+            str(product["id"])
+            for product in selected_products
+        )
+
+        html = f"""
+        <!DOCTYPE html>
+        <html lang="es">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport"
+                  content="width=device-width, initial-scale=1.0">
+
+            <title>Revisión conjunta SEO de Productos</title>
+        </head>
+
+        <body style="
+            font-family:Arial, sans-serif;
+            max-width:1000px;
+            margin:40px auto;
+            padding:0 20px;
+            background:#f7f7f7;
+            color:#222;
+        ">
+
+            <h1>Revisión conjunta SEO de Productos</h1>
+
+            <p>
+                <strong>
+                    Productos seleccionados:
+                    {len(selected_products)}
+                </strong>
+            </p>
+
+            <p>
+                Revisá cuidadosamente los títulos y las
+                descripciones SEO propuestas.
+            </p>
+
+            {product_cards}
+
+            <hr>
+
+            <h2>Importante</h2>
+
+            <p>
+                Esta pantalla todavía no modifica Tiendanube.
+            </p>
+
+            <p>
+                En el próximo paso agregaremos una confirmación final
+                antes de aplicar cualquier cambio.
+            </p>
+
+            <p>
+                <a href="/products-confirm?ids={ids_for_next_step}">
+                    Continuar a confirmación final
+                </a>
+            </p>
+
+            <p>
+                <a href="/products-review">
+                    ← Volver a la revisión SEO de productos
+                </a>
+            </p>
+
+        </body>
+        </html>
+        """
+
+        return HTMLResponse(content=html)
+
+    except Exception as e:
+        return HTMLResponse(
+            content=f"""
+            <h1>Error en revisión conjunta de productos</h1>
+            <p>{str(e)}</p>
+            <p>
+                <a href="/products-review">
+                    Volver a la revisión
+                </a>
+            </p>
+            """,
+            status_code=500
+        )
+
+
 def get_categories():
     if not TIENDANUBE_ACCESS_TOKEN or not TIENDANUBE_STORE_ID:
         return []
@@ -635,6 +810,8 @@ def get_categories():
         page += 1
 
     return all_categories
+
+
 @app.get("/tiendanube-permissions-test")
 async def tiendanube_permissions_test():
     try:
