@@ -187,14 +187,14 @@ def generate_product_seo_suggestion(product_name):
 
         if "visor" in lower_name and "sin visor" not in lower_name:
             seo_description = (
-                f"{clean_name}, caja de cartulina con visor para presentar "
-                "bombones y chocolates. Ideal para chocolaterías, pastelerías "
-                "y emprendimientos."
+                f"{clean_name}, ideal para presentar y proteger bombones "
+                "y chocolates. Packaging de cartulina para chocolaterías, "
+                "pastelerías y emprendimientos."
             )
         else:
             seo_description = (
-                f"{clean_name}, caja de cartulina para presentar bombones "
-                "y chocolates. Ideal para chocolaterías, regalos "
+                f"{clean_name}, ideal para presentar bombones y chocolates. "
+                "Packaging de cartulina para chocolaterías, regalos "
                 "y emprendimientos."
             )
 
@@ -215,8 +215,8 @@ def generate_product_seo_suggestion(product_name):
     elif "mini torta" in lower_name or "minitorta" in lower_name:
         seo_title = f"{title_name} | CUBIKACAJAS"
         seo_description = (
-            f"{clean_name}, caja de cartulina para presentación y traslado "
-            "de mini tortas. Ideal para pastelerías y emprendimientos."
+            f"{clean_name}, ideal para presentar y trasladar mini tortas. "
+            "Packaging de cartulina para pastelerías y emprendimientos."
         )
 
     # ---------------------------------------------------------
