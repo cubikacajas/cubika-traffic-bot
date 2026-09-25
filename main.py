@@ -79,7 +79,80 @@ def get_products():
         page += 1
 
     return all_products
+def get_product_seo_audit():
+    products = get_products()
+    results = []
 
+    for product in products:
+        product_id = product.get("id")
+
+        product_name = get_translation(
+            product.get("name"),
+            "Producto sin nombre"
+        ).strip()
+
+        seo_title = get_translation(
+            product.get("seo_title"),
+            ""
+        ).strip()
+
+        seo_description = get_translation(
+            product.get("seo_description"),
+            ""
+        ).strip()
+
+        results.append({
+            "id": product_id,
+            "product": product_name,
+            "seo_title": seo_title,
+            "seo_description": seo_description,
+            "has_seo_title": bool(seo_title),
+            "has_seo_description": bool(seo_description),
+            "seo_complete": bool(seo_title and seo_description),
+        })
+
+    return results
+
+
+@app.get("/products-seo-audit")
+async def products_seo_audit():
+    try:
+        results = get_product_seo_audit()
+
+        total_products = len(results)
+
+        complete = sum(
+            1 for product in results
+            if product["seo_complete"]
+        )
+
+        missing_title = sum(
+            1 for product in results
+            if not product["has_seo_title"]
+        )
+
+        missing_description = sum(
+            1 for product in results
+            if not product["has_seo_description"]
+        )
+
+        return {
+            "success": True,
+            "message": "Auditoría SEO de productos completada. No se realizaron cambios en Tiendanube.",
+            "summary": {
+                "total_products": total_products,
+                "seo_complete": complete,
+                "missing_seo_title": missing_title,
+                "missing_seo_description": missing_description,
+            },
+            "products": results,
+        }
+
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e)
+        }
 def get_categories():
     if not TIENDANUBE_ACCESS_TOKEN or not TIENDANUBE_STORE_ID:
         return []
